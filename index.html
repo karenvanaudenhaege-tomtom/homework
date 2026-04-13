@@ -956,89 +956,20 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (ElevenLabs)
+//  SPEECH  (Web Speech API — no API key required)
 // ════════════════════════════════════════════════════════════
-const ELEVENLABS_KEY   = "REMOVED";
-const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual_v2 (free tier)
-let elAbort  = null;
-let elSource = null;   // current AudioContext BufferSource
-let audioCtx = null;
+const LANG_LOCALE = { english: "en-GB", afrikaans: "af-ZA" };
 
-// AudioContext must be created/resumed during a user gesture on iOS.
-// We also play a 1-sample silent buffer to fully unlock it — some iOS versions
-// require actual audio output before the context is considered "active".
-function initSpeech() {
-    const unlock = () => {
-        if (audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.resume(); // synchronous kick — no await so we stay in gesture context
-        try {
-            const silence = audioCtx.createBuffer(1, 1, 22050);
-            const src = audioCtx.createBufferSource();
-            src.buffer = silence;
-            src.connect(audioCtx.destination);
-            src.start();
-        } catch(e) {}
-    };
-    document.addEventListener("touchstart", unlock, { once: true });
-    document.addEventListener("mousedown",  unlock, { once: true });
-}
-
-async function speakElevenLabs(text) {
-    if (elAbort)  { elAbort.abort(); elAbort = null; }
-    if (elSource) { try { elSource.stop(); } catch(e) {} elSource = null; }
-
-    // Ensure AudioContext exists — create + resume synchronously (before any await)
-    // so we stay within the user-gesture window that iOS requires.
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume(); // synchronous kick, no await
-
-    // Play a 1-sample silent buffer right now (still synchronous, still in gesture window).
-    // This keeps the AudioContext "active" on iOS while the fetch runs.
-    try {
-        const silence = audioCtx.createBuffer(1, 1, 22050);
-        const silentSrc = audioCtx.createBufferSource();
-        silentSrc.buffer = silence;
-        silentSrc.connect(audioCtx.destination);
-        silentSrc.start();
-    } catch(e) {}
-
-    elAbort = new AbortController();
-    try {
-        const res = await fetch(
-            `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE}`,
-            {
-                method: "POST",
-                signal: elAbort.signal,
-                headers: { "xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    text,
-                    model_id: "eleven_multilingual_v2",
-                    voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: 0.85 }
-                })
-            }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-        const arrayBuffer = await res.arrayBuffer();
-        // Use callback form of decodeAudioData — Promise form only works on iOS 14.1+
-        const audioBuffer = await new Promise((resolve, reject) =>
-            audioCtx.decodeAudioData(arrayBuffer, resolve, reject)
-        );
-        elSource = audioCtx.createBufferSource();
-        elSource.buffer = audioBuffer;
-        elSource.connect(audioCtx.destination);
-        elSource.start();
-        G.spokenAt = Date.now();
-        elSource.onended = () => { elSource = null; };
-    } catch (e) {
-        if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
-    } finally {
-        elAbort = null;
-    }
-}
+function initSpeech() {} // nothing to initialise for Web Speech API
 
 function speak() {
-    if (G.current) speakElevenLabs(G.current);
+    if (!G.current) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(G.current);
+    utt.lang = LANG_LOCALE[G.lang] || "en-GB";
+    utt.rate = 0.85;
+    utt.onstart = () => { G.spokenAt = Date.now(); };
+    window.speechSynthesis.speak(utt);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1403,8 +1334,7 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    if (elAbort)  { elAbort.abort(); elAbort = null; }
-    if (elSource) { try { elSource.stop(); } catch(e) {} elSource = null; }
+    window.speechSynthesis.cancel();
 }
 
 function goHome() {
