@@ -956,20 +956,21 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (Web Speech API — no API key required)
+//  SPEECH  (Google Translate TTS — no API key required)
 // ════════════════════════════════════════════════════════════
-const LANG_LOCALE = { english: "en-GB", afrikaans: "af-ZA" };
+const LANG_LOCALE = { english: "en", afrikaans: "af" };
+let currentAudio = null;
 
-function initSpeech() {} // nothing to initialise for Web Speech API
+function initSpeech() {}
 
 function speak() {
     if (!G.current) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(G.current);
-    utt.lang = LANG_LOCALE[G.lang] || "en-GB";
-    utt.rate = 0.85;
-    utt.onstart = () => { G.spokenAt = Date.now(); };
-    window.speechSynthesis.speak(utt);
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    const lang = LANG_LOCALE[G.lang] || "en";
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(G.current)}&tl=${lang}&client=gtx`;
+    currentAudio = new Audio(url);
+    currentAudio.addEventListener("play", () => { G.spokenAt = Date.now(); });
+    currentAudio.play().catch(e => console.error("TTS failed:", e));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1334,7 +1335,7 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    window.speechSynthesis.cancel();
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 }
 
 function goHome() {
