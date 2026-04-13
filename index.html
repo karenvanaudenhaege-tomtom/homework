@@ -485,6 +485,48 @@
             100% { transform: translateY(105vh) rotateZ(800deg) rotateX(400deg); opacity: 0; }
         }
 
+        /* ── EDIT WORDS SCREEN ── */
+        .edit-title { text-align:center; padding: 28px 20px 12px; color:#fff; }
+        .edit-title h1 { font-size:1.8rem; font-weight:900; }
+        .edit-title p  { font-size:0.95rem; opacity:0.8; margin-top:4px; }
+        .edit-grid { display:flex; gap:16px; padding:0 20px; flex-wrap:wrap; justify-content:center; }
+        .edit-panel {
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 20px;
+            flex: 1;
+            min-width: 240px;
+            max-width: 340px;
+        }
+        .edit-panel h2 { color:#fff; font-size:1.1rem; font-weight:800; margin-bottom:14px; }
+        .word-tags { display:flex; flex-wrap:wrap; gap:8px; min-height:40px; margin-bottom:14px; }
+        .word-tag {
+            display:inline-flex; align-items:center; gap:5px;
+            background:rgba(255,255,255,0.25); color:#fff;
+            border-radius:999px; padding:5px 10px 5px 13px;
+            font-size:0.9rem; font-weight:700;
+        }
+        .word-tag-remove {
+            background:rgba(255,255,255,0.3); border:none; border-radius:50%;
+            color:#fff; cursor:pointer; font-size:0.85rem; font-weight:900;
+            width:20px; height:20px; line-height:1; padding:0;
+        }
+        .word-tag-remove:hover { background:rgba(255,100,100,0.6); }
+        .word-input-row { display:flex; gap:8px; }
+        .word-input-row input {
+            flex:1; border:none; border-radius:12px; padding:10px 14px;
+            font-size:0.95rem; font-family:inherit; font-weight:700;
+            background:rgba(255,255,255,0.9); color:#1e1b4b; outline:none;
+        }
+        .word-input-row input::placeholder { color:#9ca3af; font-weight:400; }
+        .word-input-row button {
+            background:rgba(255,255,255,0.3); border:none; border-radius:12px;
+            color:#fff; font-size:1.3rem; font-weight:900; padding:0 16px;
+            cursor:pointer;
+        }
+        .word-input-row button:hover { background:rgba(255,255,255,0.45); }
+        .edit-footer { text-align:center; padding:20px; }
+
         /* ── FLOAT STARS ── */
         .float-star {
             position: fixed;
@@ -543,6 +585,39 @@
 
     <div class="home-footer">
         <span class="ghost-btn" style="cursor:pointer;opacity:1" onclick="goTheme()">🎨 Change Theme</span>
+        <span class="ghost-btn" style="cursor:pointer;opacity:1" onclick="showEditScreen()">✏️ Edit Words</span>
+    </div>
+</div>
+
+<!-- ════════════ EDIT WORDS SCREEN ════════════ -->
+<div id="screen-edit" class="screen">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div class="edit-title">
+        <h1>✏️ Edit Words</h1>
+        <p>Add or remove words for this week</p>
+    </div>
+    <div class="edit-grid">
+        <div class="edit-panel">
+            <h2>📖 English</h2>
+            <div class="word-tags" id="edit-en-tags"></div>
+            <div class="word-input-row">
+                <input id="edit-en-input" type="text" placeholder="Add a word…"
+                    onkeydown="if(event.key==='Enter')addWord('english')">
+                <button onclick="addWord('english')">＋</button>
+            </div>
+        </div>
+        <div class="edit-panel">
+            <h2>🌍 Afrikaans</h2>
+            <div class="word-tags" id="edit-af-tags"></div>
+            <div class="word-input-row">
+                <input id="edit-af-input" type="text" placeholder="Voeg 'n woord by…"
+                    onkeydown="if(event.key==='Enter')addWord('afrikaans')">
+                <button onclick="addWord('afrikaans')">＋</button>
+            </div>
+        </div>
+    </div>
+    <div class="edit-footer">
+        <span class="ghost-btn" style="cursor:pointer;opacity:1" onclick="resetWords()">↩ Reset to defaults</span>
     </div>
 </div>
 
@@ -776,13 +851,77 @@ let G = {
 // ════════════════════════════════════════════════════════════
 //  WORDS — loaded from words.js
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  WORD LISTS  (words.js defaults, overridden by localStorage)
+// ════════════════════════════════════════════════════════════
+let customWords = null;
+
+function loadCustomWords() {
+    try {
+        const saved = localStorage.getItem("homework_words");
+        if (saved) customWords = JSON.parse(saved);
+    } catch(e) {}
+}
+
+function saveCustomWords() {
+    try { localStorage.setItem("homework_words", JSON.stringify(customWords)); }
+    catch(e) {}
+}
+
 function getWords(lang) {
+    if (customWords && customWords[lang]) return customWords[lang];
     return (WEEKLY_WORDS && WEEKLY_WORDS[lang]) ? WEEKLY_WORDS[lang] : [];
 }
 
 function refreshCounts() {
     document.getElementById("en-count").textContent = getWords("english").length   + " words";
     document.getElementById("af-count").textContent = getWords("afrikaans").length + " words";
+}
+
+function showEditScreen() {
+    renderEditPanel("english");
+    renderEditPanel("afrikaans");
+    showScreen("screen-edit");
+}
+
+function renderEditPanel(lang) {
+    const words = getWords(lang);
+    const id = lang === "english" ? "edit-en-tags" : "edit-af-tags";
+    document.getElementById(id).innerHTML = words.map((w, i) =>
+        `<span class="word-tag">${w}<button class="word-tag-remove" onclick="removeWord('${lang}',${i})">×</button></span>`
+    ).join("") || `<span style="color:rgba(255,255,255,0.5);font-size:0.85rem">No words yet</span>`;
+}
+
+function addWord(lang) {
+    const inputId = lang === "english" ? "edit-en-input" : "edit-af-input";
+    const input   = document.getElementById(inputId);
+    const word    = input.value.trim().toLowerCase();
+    if (!word) return;
+    if (!customWords) customWords = { english: [...getWords("english")], afrikaans: [...getWords("afrikaans")] };
+    if (!customWords[lang].includes(word)) {
+        customWords[lang].push(word);
+        saveCustomWords();
+        refreshCounts();
+    }
+    input.value = "";
+    renderEditPanel(lang);
+    input.focus();
+}
+
+function removeWord(lang, idx) {
+    if (!customWords) customWords = { english: [...getWords("english")], afrikaans: [...getWords("afrikaans")] };
+    customWords[lang].splice(idx, 1);
+    saveCustomWords();
+    refreshCounts();
+    renderEditPanel(lang);
+}
+
+function resetWords() {
+    customWords = null;
+    localStorage.removeItem("homework_words");
+    refreshCounts();
+    renderEditPanel("english");
+    renderEditPanel("afrikaans");
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1118,6 +1257,7 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 // ════════════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════════════
+loadCustomWords();
 initSpeech();
 refreshCounts();
 </script>
