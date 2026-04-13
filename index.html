@@ -927,6 +927,7 @@ function addWord(lang) {
     if (!customWords[lang].includes(word)) {
         customWords[lang].push(word);
         saveCustomWords();
+        resetStreak();
         refreshCounts();
     }
     input.value = "";
@@ -938,6 +939,7 @@ function removeWord(lang, idx) {
     if (!customWords) customWords = { english: [...getWords("english")], afrikaans: [...getWords("afrikaans")] };
     customWords[lang].splice(idx, 1);
     saveCustomWords();
+    resetStreak();
     refreshCounts();
     renderEditPanel(lang);
 }
@@ -945,6 +947,7 @@ function removeWord(lang, idx) {
 function resetWords() {
     customWords = null;
     localStorage.removeItem("homework_words");
+    resetStreak();
     refreshCounts();
     renderEditPanel("english");
     renderEditPanel("afrikaans");
@@ -1223,21 +1226,57 @@ function todayStr() {
     return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+function wordsFingerprint() {
+    return JSON.stringify({
+        en: [...getWords("english")].sort(),
+        af: [...getWords("afrikaans")].sort()
+    });
+}
+
+function loadStreak() {
+    try { return JSON.parse(localStorage.getItem("homework_streak")) || {}; } catch(e) { return {}; }
+}
+
+function saveStreak(s) {
+    try { localStorage.setItem("homework_streak", JSON.stringify(s)); } catch(e) {}
+}
+
+// Called on page load — resets streak if the word list changed since last session
+function checkWordChange() {
+    const fp = wordsFingerprint();
+    const s  = loadStreak();
+    if (s.fp !== undefined && s.fp !== fp) {
+        s.count    = 0;
+        s.lastDate = null;
+    }
+    s.fp = fp;
+    saveStreak(s);
+}
+
+// Called from the word editor whenever the list changes
+function resetStreak() {
+    const s = loadStreak();
+    s.count    = 0;
+    s.lastDate = null;
+    s.fp       = wordsFingerprint();
+    saveStreak(s);
+}
+
 function updateStreak() {
     const today = todayStr();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yest = yesterday.toISOString().slice(0, 10);
 
-    let s = { count: 0, lastDate: null };
-    try { s = JSON.parse(localStorage.getItem("homework_streak")) || s; } catch(e) {}
+    const s = loadStreak();
 
     if (s.lastDate === today)  return s;               // already practiced today
-    if (s.lastDate === yest)   s.count += 1;           // consecutive — keep going
-    else                       s.count  = 1;           // gap — reset
+    if (s.lastDate === yest)   s.count = (s.count || 0) + 1;  // consecutive
+    else                       s.count = 1;            // gap — reset
     s.lastDate = today;
+    s.fp = wordsFingerprint();
 
-    try { localStorage.setItem("homework_streak", JSON.stringify(s)); } catch(e) {}
+    saveStreak(s);
     return s;
 }
 
@@ -1346,6 +1385,7 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 //  INIT
 // ════════════════════════════════════════════════════════════
 loadCustomWords();
+checkWordChange();
 initSpeech();
 refreshCounts();
 </script>
