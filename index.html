@@ -1076,7 +1076,7 @@ function flipCard() {
     if (G.flipped) return;
 
     const elapsed = G.spokenAt ? Date.now() - G.spokenAt : -1;
-    if (elapsed < ANTI_CHEAT_MS) {
+    if (!TEST_MODE && elapsed < ANTI_CHEAT_MS) {
         playAlarm();
         const btn = document.getElementById("pre-btns").querySelector(".btn-reveal");
         btn.classList.add("shake");
