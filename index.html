@@ -1031,10 +1031,7 @@ async function speakElevenLabs(text) {
         G.spokenAt = Date.now();
         elSource.onended = () => { elSource = null; };
     } catch (e) {
-        if (e.name !== "AbortError") {
-            console.error("ElevenLabs TTS failed:", e);
-            setFeedback("🔇 Audio error: " + e.message); // visible on-screen for iOS debugging
-        }
+        if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
     } finally {
         elAbort = null;
     }
