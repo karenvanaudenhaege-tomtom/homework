@@ -5,20 +5,11 @@ on:
     branches: [main, feature/photo-check]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,9 +18,11 @@ jobs:
           sed -i "s|__GEMINI_API_KEY__|${{ secrets.GEMINI_API_KEY }}|g" index.html
           sed -i "s|__ELEVENLABS_API_KEY__|${{ secrets.ELEVENLABS_API_KEY }}|g" index.html
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: .
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          # main → root (/homework), feature branches → subdir (/homework/photo-check)
+          destination_dir: ${{ github.ref == 'refs/heads/main' && '.' || 'photo-check' }}
+          keep_files: true  # don't delete other deployments
