@@ -960,31 +960,29 @@ function resetWords() {
 // ════════════════════════════════════════════════════════════
 const ELEVENLABS_KEY   = "REMOVED";
 const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual_v2 (free tier)
-let elAudio = null;
-let elAbort = null;
+let elAbort  = null;
+let elSource = null;   // current AudioContext BufferSource
+let audioCtx = null;
 
-// iOS requires audio to be triggered by a user gesture. Playing a silent
-// clip on first touch unlocks the audio session for the whole page visit.
+// AudioContext must be created/resumed during a user gesture on iOS.
+// Once unlocked it stays unlocked for the session — async plays work freely.
 function initSpeech() {
-    const unlock = () => {
-        const a = new Audio();
-        a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
-        a.play().catch(() => {});
-        document.removeEventListener("touchstart", unlock);
-        document.removeEventListener("mousedown",  unlock);
+    const unlock = async () => {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        await audioCtx.resume();
     };
     document.addEventListener("touchstart", unlock, { once: true });
     document.addEventListener("mousedown",  unlock, { once: true });
 }
 
 async function speakElevenLabs(text) {
-    // Cancel any in-flight request and any playing audio
-    if (elAbort) { elAbort.abort(); elAbort = null; }
-    if (elAudio)  { elAudio.pause(); elAudio = null; }
+    if (elAbort)  { elAbort.abort(); elAbort = null; }
+    if (elSource) { try { elSource.stop(); } catch(e) {} elSource = null; }
 
-    // Create the Audio element NOW, before any await, so iOS considers
-    // it gesture-triggered when speak() was called from a button tap.
-    const audio = new Audio();
+    // Ensure AudioContext exists and is running
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+
     elAbort = new AbortController();
     try {
         const res = await fetch(
@@ -1001,12 +999,13 @@ async function speakElevenLabs(text) {
             }
         );
         if (!res.ok) throw new Error(await res.text());
-        const url = URL.createObjectURL(await res.blob());
-        audio.src = url;
-        elAudio = audio;
-        elAudio.play();
+        const audioBuffer = await audioCtx.decodeAudioData(await res.arrayBuffer());
+        elSource = audioCtx.createBufferSource();
+        elSource.buffer = audioBuffer;
+        elSource.connect(audioCtx.destination);
+        elSource.start();
         G.spokenAt = Date.now();
-        elAudio.onended = () => URL.revokeObjectURL(url);
+        elSource.onended = () => { elSource = null; };
     } catch (e) {
         if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
     } finally {
@@ -1380,8 +1379,8 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    if (elAbort) { elAbort.abort(); elAbort = null; }
-    if (elAudio)  { elAudio.pause(); elAudio = null; }
+    if (elAbort)  { elAbort.abort(); elAbort = null; }
+    if (elSource) { try { elSource.stop(); } catch(e) {} elSource = null; }
 }
 
 function goHome() {
