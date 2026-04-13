@@ -1052,7 +1052,7 @@ function nextWord() {
     setTimeout(speak, 450);
 }
 
-const ANTI_CHEAT_MS = (ANTI_CHEAT_SECONDS || 6) * 1000;
+const ANTI_CHEAT_MS = (typeof ANTI_CHEAT_SECONDS === "number" ? ANTI_CHEAT_SECONDS : 6) * 1000;
 
 function playAlarm() {
     try {
