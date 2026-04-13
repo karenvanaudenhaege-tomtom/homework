@@ -782,16 +782,22 @@ function refreshCounts() {
 const ELEVENLABS_KEY   = "REMOVED";
 const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual_v2 (free tier)
 let elAudio = null;
+let elAbort = null;
 
 function initSpeech() {}
 
 async function speakElevenLabs(text) {
-    if (elAudio) { elAudio.pause(); elAudio = null; }
+    // Cancel any in-flight request and any playing audio
+    if (elAbort) { elAbort.abort(); elAbort = null; }
+    if (elAudio)  { elAudio.pause(); elAudio = null; }
+
+    elAbort = new AbortController();
     try {
         const res = await fetch(
             `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE}`,
             {
                 method: "POST",
+                signal: elAbort.signal,
                 headers: { "xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json" },
                 body: JSON.stringify({
                     text,
@@ -806,7 +812,9 @@ async function speakElevenLabs(text) {
         elAudio.play();
         elAudio.onended = () => URL.revokeObjectURL(url);
     } catch (e) {
-        console.error("ElevenLabs TTS failed:", e);
+        if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
+    } finally {
+        elAbort = null;
     }
 }
 
@@ -1042,7 +1050,8 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    if (elAudio) { elAudio.pause(); elAudio = null; }
+    if (elAbort) { elAbort.abort(); elAbort = null; }
+    if (elAudio)  { elAudio.pause(); elAudio = null; }
 }
 
 function goHome() {
