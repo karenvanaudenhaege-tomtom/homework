@@ -351,6 +351,118 @@
         }
 
 
+        /* ── THEME CHOOSER ── */
+        .theme-title {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        .theme-title h1 {
+            font-size: clamp(2rem, 7vw, 3rem);
+            font-weight: 900;
+            text-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
+        .theme-title p {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+        .theme-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+        @media (max-width: 420px) { .theme-grid { grid-template-columns: 1fr; } }
+        .theme-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 36px 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+            border: 3px solid transparent;
+        }
+        .theme-card:hover { transform: translateY(-8px); box-shadow: 0 32px 80px rgba(0,0,0,0.22); }
+        .theme-card:active { transform: translateY(-3px); }
+        .theme-card .t-emoji { font-size: 4rem; display: block; margin-bottom: 12px; }
+        .theme-card h2 { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
+        .theme-card.tc-soccer h2 { color: #4F46E5; }
+        .theme-card.tc-cats h2 { color: #E91E8C; }
+        .theme-card .t-desc { font-size: 0.85rem; color: #9CA3AF; font-weight: 700; }
+
+        /* Cat theme body override */
+        body.cat-theme {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #fda085 100%);
+        }
+
+        /* ── CAT CARD (reward) ── */
+        .cat-card {
+            width: 210px; height: 316px;
+            border-radius: 18px;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 12px 10px 10px;
+            user-select: none;
+        }
+        .cat-card.cc-animate {
+            animation: cardReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 0 32px 8px rgba(255,105,180,0.4), 0 24px 60px rgba(0,0,0,0.4);
+        }
+        .cc-legendary { background: linear-gradient(160deg,#4a0030 0%,#a8006e 35%,#ff69b4 60%,#ffc0e0 80%,#d4007a 100%); }
+        .cc-rare      { background: linear-gradient(160deg,#1a004a 0%,#6a1b9a 30%,#ce93d8 50%,#9c27b0 70%,#1a004a 100%); }
+        .cc-uncommon  { background: linear-gradient(160deg,#004d40 0%,#00897b 30%,#80cbc4 50%,#00897b 70%,#004d40 100%); }
+        .cc-common    { background: linear-gradient(160deg,#37474f 0%,#78909c 30%,#cfd8dc 50%,#78909c 70%,#37474f 100%); }
+
+        .cc-shine {
+            position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(130deg,transparent 0%,rgba(255,255,255,0.22) 45%,transparent 55%);
+        }
+        .cc-top { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+        .cc-rating {
+            font-size: 2.7rem; font-weight: 900; line-height: 1;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .cc-breed {
+            font-size: 0.55rem; font-weight: 900; letter-spacing: 2px;
+            color: rgba(255,255,255,0.7); text-transform: uppercase;
+        }
+        .cc-emoji { font-size: 1.5rem; line-height: 1; margin-top: 2px; }
+        .cc-art {
+            width: 100%;
+            margin: 2px 0 4px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+            animation: bob 2.5s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        .cc-photo {
+            width: 100%; height: 148px;
+            object-fit: cover; object-position: top center;
+            border-radius: 10px;
+            display: block;
+        }
+        .cc-name {
+            font-size: 0.88rem; font-weight: 900; letter-spacing: 3px;
+            color: rgba(255,255,255,0.95); text-align: center; white-space: nowrap;
+            margin-top: 2px;
+        }
+        .cc-trait {
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 2px;
+            color: rgba(255,255,255,0.6); text-align: center; white-space: nowrap;
+            text-transform: uppercase; margin-top: 1px;
+        }
+        .cc-divider { width: 80%; height: 1px; background: rgba(255,255,255,0.25); margin: 7px 0; }
+        .cc-stats { display: flex; gap: 14px; justify-content: center; }
+        .cc-stat { text-align: center; }
+        .cc-sv { font-size: 1.2rem; font-weight: 900; color: rgba(255,255,255,0.95); line-height: 1; }
+        .cc-sl {
+            font-size: 0.5rem; font-weight: 800; letter-spacing: 1px;
+            color: rgba(255,255,255,0.6); text-transform: uppercase; margin-top: 2px;
+        }
+
         /* ── CONFETTI ── */
         .confetti {
             position: fixed; top: -16px;
@@ -381,8 +493,28 @@
 </head>
 <body>
 
+<!-- ════════════ THEME CHOOSER ════════════ -->
+<div id="screen-theme" class="screen active">
+    <div class="theme-title">
+        <h1>✨ Word Practice</h1>
+        <p>Pick your style!</p>
+    </div>
+    <div class="theme-grid">
+        <div class="theme-card tc-soccer" onclick="chooseTheme('soccer')">
+            <span class="t-emoji">⚽</span>
+            <h2>Soccer Stars</h2>
+            <div class="t-desc">Earn player cards!</div>
+        </div>
+        <div class="theme-card tc-cats" onclick="chooseTheme('cats')">
+            <span class="t-emoji">🐱</span>
+            <h2>Cute Cats</h2>
+            <div class="t-desc">Collect kitty cards!</div>
+        </div>
+    </div>
+</div>
+
 <!-- ════════════ HOME SCREEN ════════════ -->
-<div id="screen-home" class="screen active">
+<div id="screen-home" class="screen">
     <div class="home-title">
         <h1>✨ Word Practice</h1>
         <p>Which words are you doing today?</p>
@@ -402,7 +534,7 @@
     </div>
 
     <div class="home-footer">
-        <span class="ghost-btn">📝 Edit words in <strong>words.js</strong></span>
+        <span class="ghost-btn" style="cursor:pointer;opacity:1" onclick="goTheme()">🎨 Change Theme</span>
     </div>
 </div>
 
@@ -453,7 +585,8 @@
 <!-- ════════════ COMPLETE SCREEN ════════════ -->
 <div id="screen-complete" class="screen">
     <h1 id="complete-title" class="complete-title">Amazing!</h1>
-    <div class="card-stage">
+    <div class="card-stage" id="reward-stage">
+        <!-- Soccer card (shown for soccer theme) -->
         <div class="soccer-card sc-gold" id="soccer-card">
             <div class="sc-shine"></div>
             <div class="sc-top">
@@ -476,16 +609,88 @@
                 <div class="sc-stat"><div class="sc-sv" id="sc-1st">0</div><div class="sc-sl">1ST</div></div>
             </div>
         </div>
+        <!-- Cat card (shown for cats theme) -->
+        <div class="cat-card cc-rare" id="cat-card" style="display:none">
+            <div class="cc-shine"></div>
+            <div class="cc-top">
+                <div>
+                    <div class="cc-rating" id="cc-rating">85</div>
+                    <div class="cc-breed"  id="cc-breed">KITTEN</div>
+                </div>
+                <div class="cc-emoji" id="cc-emoji">🐱</div>
+            </div>
+            <div class="cc-art" id="cc-art">
+                <img class="cc-photo" id="cc-photo" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <div class="cc-name" id="cc-name">WHISKERS</div>
+            <div class="cc-trait" id="cc-trait">SUPER FLUFFY</div>
+            <div class="cc-divider"></div>
+            <div class="cc-stats">
+                <div class="cc-stat"><div class="cc-sv" id="cc-wrd">0</div><div class="cc-sl">WRD</div></div>
+                <div class="cc-stat"><div class="cc-sv" id="cc-str">0</div><div class="cc-sl">STR</div></div>
+                <div class="cc-stat"><div class="cc-sv" id="cc-acc">0</div><div class="cc-sl">ACC</div></div>
+                <div class="cc-stat"><div class="cc-sv" id="cc-1st">0</div><div class="cc-sl">1ST</div></div>
+            </div>
+        </div>
     </div>
     <div class="complete-btns">
         <button class="btn btn-replay" onclick="replayGame()">🔄 Practice Again</button>
         <button class="btn btn-home-c" onclick="goHome()">🏠 Choose Different Words</button>
+        <button class="btn btn-home-c" onclick="goTheme()">🎨 Change Theme</button>
     </div>
 </div>
 
 <script src="words.js"></script>
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
+
+let currentTheme = "soccer"; // "soccer" or "cats"
+
+function chooseTheme(theme) {
+    currentTheme = theme;
+    if (theme === "cats") {
+        document.body.classList.add("cat-theme");
+    } else {
+        document.body.classList.remove("cat-theme");
+    }
+    showScreen("screen-home");
+}
+
+// ── Cat card reward cats, grouped by performance tier ──
+const CATS = {
+    legendary: [
+        { name: "PRINCESS",   breed: "PERSIAN",    emoji: "👑", trait: "SUPER FLUFFY",    img: "0F0IKAPOdWiE755P.jpg" },
+        { name: "LUNA",       breed: "RAGDOLL",    emoji: "🌙", trait: "SILKY SOFT",      img: "0GC9MRUAqxhBzPyA.png" },
+        { name: "SNOWBALL",   breed: "SIBERIAN",   emoji: "❄️", trait: "MEGA CUDDLY",     img: "0mstmOIucwiN80jb.jpg" },
+        { name: "DIAMOND",    breed: "SIAMESE",    emoji: "💎", trait: "CRYSTAL EYES",    img: "0RU7ZkgzyvWv8UJG.png" },
+        { name: "ANGEL",      breed: "KITTEN",     emoji: "😇", trait: "TINY BABY",       img: "0ztFbDrgDV2K7yJ1.jpg" },
+        { name: "STARDUST",   breed: "KITTEN",     emoji: "🌟", trait: "DAZZLING",        img: "1bJraW0IwSPm3MVd.jpg" },
+    ],
+    rare: [
+        { name: "WHISKERS",   breed: "TABBY",      emoji: "🧡", trait: "PLAYFUL",         img: "1CF7xZmlX0t8QpgP.jpg" },
+        { name: "MITTENS",    breed: "TUXEDO",     emoji: "🐾", trait: "ADORABLE",        img: "1DrcyohjhwcNaRIz.jpg" },
+        { name: "GINGER",     breed: "ORANGE",     emoji: "🧡", trait: "MISCHIEVOUS",     img: "1KeQpy7eHqi0SFmc.jpg" },
+        { name: "NALA",       breed: "CREAM",      emoji: "🌸", trait: "GENTLE",          img: "1N2AH31jiY6N9TYc.jpg" },
+        { name: "ROSIE",      breed: "CALICO",     emoji: "🌹", trait: "SWEET",           img: "1ntkA1kLWffNS2xN.jpg" },
+        { name: "CLEO",       breed: "TABBY",      emoji: "✨", trait: "CURIOUS",         img: "1si02A2ZNdeNH3yo.jpg" },
+        { name: "DAISY",      breed: "KITTEN",     emoji: "🌼", trait: "SLEEPY",          img: "1wpap8yckt96vOoU.jpg" },
+        { name: "PEPPER",     breed: "KITTEN",     emoji: "🌶️", trait: "SPICY",           img: "1Y3dpssxcbHPEkfO.jpg" },
+    ],
+    uncommon: [
+        { name: "MARBLES",    breed: "KITTEN",     emoji: "🔮", trait: "TINY EXPLORER",   img: "22tTAaFI1Q33YBGO.jpg" },
+        { name: "PATCHES",    breed: "KITTEN",     emoji: "🎀", trait: "CUDDLY",          img: "28ZtVybuyptnWzTM.jpg" },
+        { name: "SHADOW",     breed: "BLACK",      emoji: "🖤", trait: "MYSTERIOUS",      img: "2AjkEyDta2fk44NE.jpg" },
+        { name: "BISCUIT",    breed: "ORANGE",     emoji: "🍪", trait: "CHUNKY",          img: "2Bb8z8bR1w5EFHhz.jpg" },
+        { name: "WILLOW",     breed: "KITTEN",     emoji: "🌿", trait: "ADVENTUROUS",     img: "2eXYJhGolHqOAKaM.jpg" },
+        { name: "PUMPKIN",    breed: "GINGER",     emoji: "🎃", trait: "CHUBBY",          img: "2lnVocnpd25cUka7.jpg" },
+    ],
+    common: [
+        { name: "BUDDY",      breed: "KITTEN",     emoji: "🤗", trait: "FRIENDLY",        img: "2lo2luOySDGPFCng.jpg" },
+        { name: "CLOVER",     breed: "KITTEN",     emoji: "🍀", trait: "LUCKY",           img: "2R4fwl2tPwmSwvp1.jpg" },
+        { name: "FROSTY",     breed: "WHITE",      emoji: "⛄", trait: "BRAVE",           img: "2VcSUtyyFnm45353.png" },
+        { name: "SCOUT",      breed: "KITTEN",     emoji: "🔍", trait: "CURIOUS",         img: "2wfWxhA4oS7bGUFW.jpg" },
+    ],
+};
 
 // ── Soccer card reward players, grouped by performance tier ──
 const PLAYERS = {
@@ -754,32 +959,68 @@ function showComplete() {
     const firstTries = G.done.filter(w => G.attempts[w] === 1).length;
     const acc        = G.done.length > 0 ? Math.round((firstTries / G.done.length) * 99) : 0;
 
-    let tier, title;
-    if      (rating >= 90) { tier = "toty";   title = "WHAT A LEGEND! 🌟";          }
-    else if (rating >= 80) { tier = "gold";   title = "AMAZING! You're a star! 🏆"; }
-    else if (rating >= 65) { tier = "silver"; title = "Well done! Great effort! 🥈"; }
-    else                   { tier = "bronze"; title = "Good try! Keep going! 💪";    }
+    const soccerCard = document.getElementById("soccer-card");
+    const catCard    = document.getElementById("cat-card");
 
-    const player = pick(PLAYERS[tier]);
+    if (currentTheme === "cats") {
+        soccerCard.style.display = "none";
+        catCard.style.display = "";
 
-    document.getElementById("complete-title").textContent = title;
-    document.getElementById("sc-rating").textContent = rating;
-    document.getElementById("sc-pos").textContent    = player.pos;
-    document.getElementById("sc-flag").textContent   = player.flag;
-    document.getElementById("sc-name").textContent   = player.name;
-    document.getElementById("sc-club").textContent   = player.club;
-    const photo = document.getElementById("sc-photo");
-    photo.style.display = "";
-    photo.src = "images/players/" + player.img + ".jpg";
-    document.getElementById("sc-wrd").textContent    = G.done.length;
-    document.getElementById("sc-str").textContent    = G.stars;
-    document.getElementById("sc-acc").textContent    = acc;
-    document.getElementById("sc-1st").textContent    = firstTries;
+        let tier, title;
+        if      (rating >= 90) { tier = "legendary"; title = "PURRFECT! You're a legend! 🌟"; }
+        else if (rating >= 80) { tier = "rare";      title = "AMAZING! You're pawsome! 🐾";   }
+        else if (rating >= 65) { tier = "uncommon";   title = "Well done! Great effort! 💕";   }
+        else                   { tier = "common";     title = "Good try! Keep going! 🐱";      }
 
-    const card = document.getElementById("soccer-card");
-    card.className = `soccer-card sc-${tier}`;
-    card.offsetWidth; // force reflow to re-trigger animation
-    card.classList.add("sc-animate");
+        const cat = pick(CATS[tier]);
+
+        document.getElementById("complete-title").textContent = title;
+        document.getElementById("cc-rating").textContent = rating;
+        document.getElementById("cc-breed").textContent  = cat.breed;
+        document.getElementById("cc-emoji").textContent  = cat.emoji;
+        document.getElementById("cc-name").textContent   = cat.name;
+        document.getElementById("cc-trait").textContent   = cat.trait;
+        const photo = document.getElementById("cc-photo");
+        photo.style.display = "";
+        photo.src = "images/cats/" + cat.img;
+        document.getElementById("cc-wrd").textContent    = G.done.length;
+        document.getElementById("cc-str").textContent    = G.stars;
+        document.getElementById("cc-acc").textContent    = acc;
+        document.getElementById("cc-1st").textContent    = firstTries;
+
+        catCard.className = `cat-card cc-${tier}`;
+        catCard.offsetWidth;
+        catCard.classList.add("cc-animate");
+    } else {
+        soccerCard.style.display = "";
+        catCard.style.display = "none";
+
+        let tier, title;
+        if      (rating >= 90) { tier = "toty";   title = "WHAT A LEGEND! 🌟";          }
+        else if (rating >= 80) { tier = "gold";   title = "AMAZING! You're a star! 🏆"; }
+        else if (rating >= 65) { tier = "silver"; title = "Well done! Great effort! 🥈"; }
+        else                   { tier = "bronze"; title = "Good try! Keep going! 💪";    }
+
+        const player = pick(PLAYERS[tier]);
+
+        document.getElementById("complete-title").textContent = title;
+        document.getElementById("sc-rating").textContent = rating;
+        document.getElementById("sc-pos").textContent    = player.pos;
+        document.getElementById("sc-flag").textContent   = player.flag;
+        document.getElementById("sc-name").textContent   = player.name;
+        document.getElementById("sc-club").textContent   = player.club;
+        const photo = document.getElementById("sc-photo");
+        photo.style.display = "";
+        photo.src = "images/players/" + player.img + ".jpg";
+        document.getElementById("sc-wrd").textContent    = G.done.length;
+        document.getElementById("sc-str").textContent    = G.stars;
+        document.getElementById("sc-acc").textContent    = acc;
+        document.getElementById("sc-1st").textContent    = firstTries;
+
+        soccerCard.className = `soccer-card sc-${tier}`;
+        soccerCard.offsetWidth;
+        soccerCard.classList.add("sc-animate");
+    }
 
     launchConfetti();
 }
@@ -840,6 +1081,12 @@ function cancelSpeech() {
 function goHome() {
     cancelSpeech();
     showScreen("screen-home");
+}
+
+function goTheme() {
+    cancelSpeech();
+    document.body.classList.remove("cat-theme");
+    showScreen("screen-theme");
 }
 
 // ════════════════════════════════════════════════════════════
