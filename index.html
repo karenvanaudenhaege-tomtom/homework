@@ -550,6 +550,37 @@
             100% { transform: scale(1);   opacity: 1; }
         }
 
+        /* ── VIDEO REWARD MODAL ── */
+        .video-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 400;
+        }
+        .video-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 401;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .video-popup iframe {
+            border-radius: 16px;
+            display: block;
+            max-width: 90vw;
+            max-height: 70vh;
+        }
+        .video-close {
+            background: rgba(255,255,255,0.9);
+            border: none; border-radius: 999px;
+            font-size: 1rem; font-weight: 900;
+            padding: 8px 24px; cursor: pointer;
+            color: #1e1b4b;
+        }
+        .video-close:hover { background: #fff; }
+
         /* ── FLOAT STARS ── */
         .float-star {
             position: fixed;
@@ -751,6 +782,20 @@
 
 <script src="words.js"></script>
 <script src="emoji-map.js"></script>
+
+<!-- ════════════ VIDEO REWARD MODAL ════════════ -->
+<div id="video-modal" style="display:none">
+    <div class="video-overlay" onclick="closeVideo()"></div>
+    <div class="video-popup">
+        <iframe id="video-iframe"
+            width="315" height="560"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+        <button class="video-close" onclick="closeVideo()">✕ Close</button>
+    </div>
+</div>
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
 
@@ -1293,6 +1338,7 @@ function showStreak(streak) {
         setTimeout(() => {
             launchConfetti();
             spawnStreakStars();
+            setTimeout(showVideoReward, 1800);
         }, 400);
     } else {
         badge.textContent = `🔥 ${streak.count} days in a row!`;
@@ -1312,6 +1358,22 @@ function spawnStreakStars() {
             s.addEventListener("animationend", () => s.remove());
         }, i * 120);
     }
+}
+
+// ════════════════════════════════════════════════════════════
+//  VIDEO REWARD
+// ════════════════════════════════════════════════════════════
+function showVideoReward() {
+    if (typeof REWARD_VIDEOS === "undefined" || !REWARD_VIDEOS.length) return;
+    const id = REWARD_VIDEOS[Math.floor(Math.random() * REWARD_VIDEOS.length)];
+    document.getElementById("video-iframe").src =
+        `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+    document.getElementById("video-modal").style.display = "";
+}
+
+function closeVideo() {
+    document.getElementById("video-iframe").src = "";
+    document.getElementById("video-modal").style.display = "none";
 }
 
 // ════════════════════════════════════════════════════════════
