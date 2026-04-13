@@ -965,11 +965,20 @@ let elSource = null;   // current AudioContext BufferSource
 let audioCtx = null;
 
 // AudioContext must be created/resumed during a user gesture on iOS.
-// Once unlocked it stays unlocked for the session — async plays work freely.
+// We also play a 1-sample silent buffer to fully unlock it — some iOS versions
+// require actual audio output before the context is considered "active".
 function initSpeech() {
-    const unlock = async () => {
+    const unlock = () => {
+        if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        await audioCtx.resume();
+        audioCtx.resume(); // synchronous kick — no await so we stay in gesture context
+        try {
+            const silence = audioCtx.createBuffer(1, 1, 22050);
+            const src = audioCtx.createBufferSource();
+            src.buffer = silence;
+            src.connect(audioCtx.destination);
+            src.start();
+        } catch(e) {}
     };
     document.addEventListener("touchstart", unlock, { once: true });
     document.addEventListener("mousedown",  unlock, { once: true });
@@ -979,9 +988,20 @@ async function speakElevenLabs(text) {
     if (elAbort)  { elAbort.abort(); elAbort = null; }
     if (elSource) { try { elSource.stop(); } catch(e) {} elSource = null; }
 
-    // Ensure AudioContext exists and is running
+    // Ensure AudioContext exists — create + resume synchronously (before any await)
+    // so we stay within the user-gesture window that iOS requires.
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") await audioCtx.resume();
+    audioCtx.resume(); // synchronous kick, no await
+
+    // Play a 1-sample silent buffer right now (still synchronous, still in gesture window).
+    // This keeps the AudioContext "active" on iOS while the fetch runs.
+    try {
+        const silence = audioCtx.createBuffer(1, 1, 22050);
+        const silentSrc = audioCtx.createBufferSource();
+        silentSrc.buffer = silence;
+        silentSrc.connect(audioCtx.destination);
+        silentSrc.start();
+    } catch(e) {}
 
     elAbort = new AbortController();
     try {
@@ -998,14 +1018,12 @@ async function speakElevenLabs(text) {
                 })
             }
         );
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
         const arrayBuffer = await res.arrayBuffer();
         // Use callback form of decodeAudioData — Promise form only works on iOS 14.1+
         const audioBuffer = await new Promise((resolve, reject) =>
             audioCtx.decodeAudioData(arrayBuffer, resolve, reject)
         );
-        // Resume in case iOS suspended the context during the async fetch
-        if (audioCtx.state !== "running") await audioCtx.resume();
         elSource = audioCtx.createBufferSource();
         elSource.buffer = audioBuffer;
         elSource.connect(audioCtx.destination);
@@ -1013,7 +1031,10 @@ async function speakElevenLabs(text) {
         G.spokenAt = Date.now();
         elSource.onended = () => { elSource = null; };
     } catch (e) {
-        if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
+        if (e.name !== "AbortError") {
+            console.error("ElevenLabs TTS failed:", e);
+            setFeedback("🔇 Audio error: " + e.message); // visible on-screen for iOS debugging
+        }
     } finally {
         elAbort = null;
     }
