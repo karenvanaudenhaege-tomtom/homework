@@ -551,6 +551,13 @@
         }
 
         /* ── VIDEO REWARD MODAL ── */
+        .btn-video-reward {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(245,158,11,0.5);
+            font-size: 1.2rem;
+            animation: streakPop 0.5s cubic-bezier(.36,2,.5,1) forwards;
+        }
         .video-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.75);
@@ -774,6 +781,8 @@
         </div>
     </div>
     <div class="complete-btns">
+        <button id="btn-video-reward" class="btn btn-video-reward" style="display:none"
+            onclick="showVideoReward()">🎬 Watch your reward!</button>
         <button class="btn btn-replay" onclick="replayGame()">🔄 Practice Again</button>
         <button class="btn btn-home-c" onclick="goHome()">🏠 Choose Different Words</button>
         <button class="btn btn-home-c" onclick="goTheme()">🎨 Change Theme</button>
@@ -1066,6 +1075,7 @@ function startGame(lang) {
     G.stars    = 0;
     G.maxStars = words.length * 3;
     words.forEach(w => G.attempts[w] = 0);
+    document.getElementById("btn-video-reward").style.display = "none";
     showScreen("screen-practice");
     nextWord();
 }
@@ -1338,7 +1348,9 @@ function showStreak(streak) {
         setTimeout(() => {
             launchConfetti();
             spawnStreakStars();
-            setTimeout(showVideoReward, 1800);
+            setTimeout(() => {
+                document.getElementById("btn-video-reward").style.display = "";
+            }, 1000);
         }, 400);
     } else {
         badge.textContent = `🔥 ${streak.count} days in a row!`;
