@@ -1009,7 +1009,7 @@ function refreshCounts() {
 // ════════════════════════════════════════════════════════════
 //  SPEECH  (ElevenLabs for Afrikaans, browser TTS for English)
 // ════════════════════════════════════════════════════════════
-const ELEVENLABS_KEY   = "sk_f4b1fcd0ca59ee6346f5e1af873e262c1b38c287023a8666";
+const ELEVENLABS_KEY   = "__ELEVENLABS_API_KEY__";  // Replaced by GitHub Actions at deploy time
 const GEMINI_KEY       = "__GEMINI_API_KEY__";  // Replaced by GitHub Actions at deploy time
 const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual_v2 (free tier)
 let elAudio = null;
@@ -1035,6 +1035,7 @@ function bestVoice(langCode) {
 
 async function speakElevenLabs(text) {
     if (elAudio) { elAudio.pause(); elAudio = null; }
+    if (!ELEVENLABS_KEY || ELEVENLABS_KEY.startsWith("__")) return;
     try {
         const res = await fetch(
             `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE}`,

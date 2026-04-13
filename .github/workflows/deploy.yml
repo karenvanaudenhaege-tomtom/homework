@@ -25,6 +25,7 @@ jobs:
       - name: Inject API keys
         run: |
           sed -i "s|__GEMINI_API_KEY__|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          sed -i "s|__ELEVENLABS_API_KEY__|${{ secrets.ELEVENLABS_API_KEY }}|g" index.html
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
