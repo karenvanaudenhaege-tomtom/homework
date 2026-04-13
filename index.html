@@ -757,7 +757,6 @@ const WRONG_MSGS = [
 // ════════════════════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════════════════════
-let voices = [];
 let G = {
     lang: null, queue: [], done: [],
     current: null, attempts: {},
@@ -778,30 +777,13 @@ function refreshCounts() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (ElevenLabs for Afrikaans, browser TTS for English)
+//  SPEECH  (ElevenLabs)
 // ════════════════════════════════════════════════════════════
 const ELEVENLABS_KEY   = "REMOVED";
 const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual_v2 (free tier)
 let elAudio = null;
 
-function initSpeech() {
-    if ("speechSynthesis" in window) {
-        const load = () => { voices = speechSynthesis.getVoices(); };
-        load();
-        speechSynthesis.onvoiceschanged = load;
-    }
-}
-
-// Return best available browser voice for a BCP-47 lang code.
-// Prefers Google/Microsoft neural voices over generic system voices.
-function bestVoice(langCode) {
-    const exact = voices.filter(v => v.lang === langCode);
-    const neural = exact.find(v => /google|microsoft/i.test(v.name));
-    if (neural) return neural;
-    if (exact.length) return exact[0];
-    const prefix = langCode.split("-")[0];
-    return voices.find(v => v.lang.startsWith(prefix)) || null;
-}
+function initSpeech() {}
 
 async function speakElevenLabs(text) {
     if (elAudio) { elAudio.pause(); elAudio = null; }
@@ -829,20 +811,7 @@ async function speakElevenLabs(text) {
 }
 
 function speak() {
-    if (!G.current) return;
-
-    if (G.lang === "afrikaans") {
-        speakElevenLabs(G.current);
-    } else if ("speechSynthesis" in window) {
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(G.current);
-        u.lang  = LANG_CFG[G.lang].langCode;
-        u.rate  = 0.8;
-        u.pitch = 1.0;
-        const v = bestVoice(LANG_CFG[G.lang].langCode);
-        if (v) u.voice = v;
-        speechSynthesis.speak(u);
-    }
+    if (G.current) speakElevenLabs(G.current);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1074,7 +1043,6 @@ function showScreen(id) {
 
 function cancelSpeech() {
     if (elAudio) { elAudio.pause(); elAudio = null; }
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
 function goHome() {
