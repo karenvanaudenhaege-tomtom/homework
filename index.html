@@ -999,7 +999,13 @@ async function speakElevenLabs(text) {
             }
         );
         if (!res.ok) throw new Error(await res.text());
-        const audioBuffer = await audioCtx.decodeAudioData(await res.arrayBuffer());
+        const arrayBuffer = await res.arrayBuffer();
+        // Use callback form of decodeAudioData — Promise form only works on iOS 14.1+
+        const audioBuffer = await new Promise((resolve, reject) =>
+            audioCtx.decodeAudioData(arrayBuffer, resolve, reject)
+        );
+        // Resume in case iOS suspended the context during the async fetch
+        if (audioCtx.state !== "running") await audioCtx.resume();
         elSource = audioCtx.createBufferSource();
         elSource.buffer = audioBuffer;
         elSource.connect(audioCtx.destination);
