@@ -641,6 +641,7 @@
 </div>
 
 <script src="words.js"></script>
+<script src="emoji-map.js"></script>
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
 
@@ -875,9 +876,7 @@ function nextWord() {
     G.current = G.queue[0];
     G.flipped = false;
 
-    const emoji = (typeof WORD_EMOJIS !== "undefined" && WORD_EMOJIS[G.current])
-        ? WORD_EMOJIS[G.current]
-        : pick(LANG_CFG[G.lang].icons);
+    const emoji = EMOJI_MAP[G.current] || pick(LANG_CFG[G.lang].icons);
     document.getElementById("q-icon").textContent = emoji;
 
     document.getElementById("card-inner").classList.remove("flipped");
