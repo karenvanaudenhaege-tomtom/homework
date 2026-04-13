@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Practice ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -573,8 +572,12 @@ function refreshCounts() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (browser Web Speech API)
+//  SPEECH  (ElevenLabs for Afrikaans, browser TTS for English)
 // ════════════════════════════════════════════════════════════
+const ELEVENLABS_KEY   = "REMOVED";
+const ELEVENLABS_VOICE = "21m00Tcm4TlvDq8ikWAM"; // Rachel — eleven_multilingual_v2
+let elAudio = null;
+
 function initSpeech() {
     if ("speechSynthesis" in window) {
         const load = () => { voices = speechSynthesis.getVoices(); };
@@ -583,9 +586,8 @@ function initSpeech() {
     }
 }
 
-// Return best available voice for a BCP-47 lang code.
-// Prefers voices with "Google" or "Microsoft" in the name (neural quality),
-// then any exact match, then any prefix match.
+// Return best available browser voice for a BCP-47 lang code.
+// Prefers Google/Microsoft neural voices over generic system voices.
 function bestVoice(langCode) {
     const exact = voices.filter(v => v.lang === langCode);
     const neural = exact.find(v => /google|microsoft/i.test(v.name));
@@ -595,13 +597,37 @@ function bestVoice(langCode) {
     return voices.find(v => v.lang.startsWith(prefix)) || null;
 }
 
+async function speakElevenLabs(text) {
+    if (elAudio) { elAudio.pause(); elAudio = null; }
+    try {
+        const res = await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE}`,
+            {
+                method: "POST",
+                headers: { "xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    text,
+                    model_id: "eleven_multilingual_v2",
+                    language_code: "af",
+                    voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: 0.85 }
+                })
+            }
+        );
+        if (!res.ok) throw new Error(await res.text());
+        const url = URL.createObjectURL(await res.blob());
+        elAudio = new Audio(url);
+        elAudio.play();
+        elAudio.onended = () => URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error("ElevenLabs TTS failed:", e);
+    }
+}
+
 function speak() {
     if (!G.current) return;
 
-    if (G.lang === "afrikaans" && typeof responsiveVoice !== "undefined") {
-        // ResponsiveVoice is the only viable free Afrikaans TTS
-        responsiveVoice.cancel();
-        responsiveVoice.speak(G.current, "Afrikaans Male", { rate: 0.85, pitch: 1.0, volume: 1 });
+    if (G.lang === "afrikaans") {
+        speakElevenLabs(G.current);
     } else if ("speechSynthesis" in window) {
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(G.current);
@@ -808,7 +834,7 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    if (typeof responsiveVoice !== "undefined") responsiveVoice.cancel();
+    if (elAudio) { elAudio.pause(); elAudio = null; }
     if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
