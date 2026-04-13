@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Practice ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -573,10 +572,9 @@ function refreshCounts() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (ResponsiveVoice primary, browser TTS fallback)
+//  SPEECH  (browser Web Speech API)
 // ════════════════════════════════════════════════════════════
 function initSpeech() {
-    // Pre-load browser voices for fallback
     if ("speechSynthesis" in window) {
         const load = () => { voices = speechSynthesis.getVoices(); };
         load();
@@ -584,31 +582,33 @@ function initSpeech() {
     }
 }
 
+// Return best available voice for a BCP-47 lang code.
+// Prefers voices with "Google" or "Microsoft" in the name (neural quality),
+// then any exact match, then any prefix match.
 function bestVoice(langCode) {
-    const exact = voices.find(v => v.lang === langCode);
-    if (exact) return exact;
+    const exact = voices.filter(v => v.lang === langCode);
+    const neural = exact.find(v => /google|microsoft/i.test(v.name));
+    if (neural) return neural;
+    if (exact.length) return exact[0];
     const prefix = langCode.split("-")[0];
     return voices.find(v => v.lang.startsWith(prefix)) || null;
 }
 
 function speak() {
-    if (!G.current) return;
+    if (!G.current || !("speechSynthesis" in window)) return;
 
-    if (typeof responsiveVoice !== "undefined") {
-        responsiveVoice.cancel();
-        const voice = G.lang === "english" ? "UK English Female" : "Afrikaans Female";
-        responsiveVoice.speak(G.current, voice, { rate: 0.85, pitch: 1.1, volume: 1 });
-    } else if ("speechSynthesis" in window) {
-        // Fallback: browser TTS
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(G.current);
-        u.lang  = LANG_CFG[G.lang].langCode;
-        u.rate  = 0.75;
-        u.pitch = 1.1;
-        const v = bestVoice(LANG_CFG[G.lang].langCode);
-        if (v) u.voice = v;
-        speechSynthesis.speak(u);
-    }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(G.current);
+
+    // Afrikaans has no browser TTS support — use Dutch, which is mutually
+    // intelligible enough for word pronunciation practice.
+    const langCode = G.lang === "afrikaans" ? "nl-NL" : LANG_CFG[G.lang].langCode;
+    u.lang  = langCode;
+    u.rate  = 0.8;
+    u.pitch = 1.0;
+    const v = bestVoice(langCode);
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -805,8 +805,7 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    if (typeof responsiveVoice !== "undefined") responsiveVoice.cancel();
-    else if ("speechSynthesis" in window) speechSynthesis.cancel();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
 function goHome() {
