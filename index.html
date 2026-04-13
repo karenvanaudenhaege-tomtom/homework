@@ -963,13 +963,28 @@ const ELEVENLABS_VOICE = "pNInz6obpgDQGcFmaJgB"; // Adam — eleven_multilingual
 let elAudio = null;
 let elAbort = null;
 
-function initSpeech() {}
+// iOS requires audio to be triggered by a user gesture. Playing a silent
+// clip on first touch unlocks the audio session for the whole page visit.
+function initSpeech() {
+    const unlock = () => {
+        const a = new Audio();
+        a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+        a.play().catch(() => {});
+        document.removeEventListener("touchstart", unlock);
+        document.removeEventListener("mousedown",  unlock);
+    };
+    document.addEventListener("touchstart", unlock, { once: true });
+    document.addEventListener("mousedown",  unlock, { once: true });
+}
 
 async function speakElevenLabs(text) {
     // Cancel any in-flight request and any playing audio
     if (elAbort) { elAbort.abort(); elAbort = null; }
     if (elAudio)  { elAudio.pause(); elAudio = null; }
 
+    // Create the Audio element NOW, before any await, so iOS considers
+    // it gesture-triggered when speak() was called from a button tap.
+    const audio = new Audio();
     elAbort = new AbortController();
     try {
         const res = await fetch(
@@ -987,7 +1002,8 @@ async function speakElevenLabs(text) {
         );
         if (!res.ok) throw new Error(await res.text());
         const url = URL.createObjectURL(await res.blob());
-        elAudio = new Audio(url);
+        audio.src = url;
+        elAudio = audio;
         elAudio.play();
         G.spokenAt = Date.now();
         elAudio.onended = () => URL.revokeObjectURL(url);
