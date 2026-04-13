@@ -229,6 +229,14 @@
         .btn-hear   { background: #fff; color: #4F46E5; box-shadow: 0 8px 24px rgba(79,70,229,0.3); }
         .btn-hear.af-active { color: var(--af-color); box-shadow: 0 8px 24px rgba(217,119,6,0.3); }
         .btn-reveal { background: #10B981; color: #fff; box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px); }
+            40%      { transform: translateX(8px); }
+            60%      { transform: translateX(-6px); }
+            80%      { transform: translateX(6px); }
+        }
+        .shake { animation: shake 0.45s ease; }
 
         .answer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .answer-row .btn { margin-bottom: 0; }
@@ -761,7 +769,8 @@ let G = {
     lang: null, queue: [], done: [],
     current: null, attempts: {},
     stars: 0, maxStars: 0,
-    flipped: false
+    flipped: false,
+    spokenAt: 0
 };
 
 // ════════════════════════════════════════════════════════════
@@ -810,6 +819,7 @@ async function speakElevenLabs(text) {
         const url = URL.createObjectURL(await res.blob());
         elAudio = new Audio(url);
         elAudio.play();
+        G.spokenAt = Date.now();
         elAudio.onended = () => URL.revokeObjectURL(url);
     } catch (e) {
         if (e.name !== "AbortError") console.error("ElevenLabs TTS failed:", e);
@@ -867,14 +877,49 @@ function nextWord() {
     document.getElementById("pre-btns").style.display  = "block";
     document.getElementById("post-btns").style.display = "none";
 
+    G.spokenAt = 0;
     setFeedback("");
     updateProgress();
     cancelSpeech();
     setTimeout(speak, 450);
 }
 
+const ANTI_CHEAT_MS = 6000;
+
+function playAlarm() {
+    try {
+        const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        [0, 0.15, 0.30].forEach(t => {
+            const osc = ctx.createOscillator();
+            osc.connect(gain);
+            osc.type = "square";
+            osc.frequency.value = 220;
+            gain.gain.setValueAtTime(0.25, ctx.currentTime + t);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.12);
+            osc.start(ctx.currentTime + t);
+            osc.stop(ctx.currentTime + t + 0.12);
+        });
+    } catch (e) { /* audio not available */ }
+}
+
 function flipCard() {
     if (G.flipped) return;
+
+    const elapsed = G.spokenAt ? Date.now() - G.spokenAt : -1;
+    if (elapsed < ANTI_CHEAT_MS) {
+        playAlarm();
+        const btn = document.getElementById("pre-btns").querySelector(".btn-reveal");
+        btn.classList.add("shake");
+        setTimeout(() => btn.classList.remove("shake"), 500);
+        const msg = elapsed < 0
+            ? "🔊 Listen to the word first!"
+            : `⏳ Wait a little longer — keep thinking!`;
+        setFeedback(msg);
+        return;
+    }
+
     G.flipped = true;
     G.attempts[G.current]++;
     document.getElementById("card-inner").classList.add("flipped");
