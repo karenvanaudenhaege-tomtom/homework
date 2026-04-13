@@ -527,6 +527,29 @@
         .word-input-row button:hover { background:rgba(255,255,255,0.45); }
         .edit-footer { text-align:center; padding:20px; }
 
+        /* ── STREAK ── */
+        .streak-area { text-align:center; margin: 10px 0 4px; min-height: 36px; }
+        .streak-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            border-radius: 999px;
+            padding: 6px 18px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+        .streak-badge.milestone {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 24px rgba(245,158,11,0.55);
+            font-size: 1.15rem;
+            padding: 10px 26px;
+            animation: streakPop 0.5s cubic-bezier(.36,2,.5,1) forwards;
+        }
+        @keyframes streakPop {
+            0%   { transform: scale(0.4); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
         /* ── FLOAT STARS ── */
         .float-star {
             position: fixed;
@@ -668,6 +691,9 @@
 <!-- ════════════ COMPLETE SCREEN ════════════ -->
 <div id="screen-complete" class="screen">
     <h1 id="complete-title" class="complete-title">Amazing!</h1>
+    <div class="streak-area">
+        <span id="streak-badge" class="streak-badge" style="display:none"></span>
+    </div>
     <div class="card-stage" id="reward-stage">
         <!-- Soccer card (shown for soccer theme) -->
         <div class="soccer-card sc-gold" id="soccer-card">
@@ -1183,9 +1209,71 @@ function showComplete() {
     }
 
     launchConfetti();
+    showStreak(updateStreak());
 }
 
 function replayGame() { startGame(G.lang); }
+
+// ════════════════════════════════════════════════════════════
+//  STREAK TRACKING
+// ════════════════════════════════════════════════════════════
+const STREAK_GOAL = 4;
+
+function todayStr() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function updateStreak() {
+    const today = todayStr();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yest = yesterday.toISOString().slice(0, 10);
+
+    let s = { count: 0, lastDate: null };
+    try { s = JSON.parse(localStorage.getItem("homework_streak")) || s; } catch(e) {}
+
+    if (s.lastDate === today)  return s;               // already practiced today
+    if (s.lastDate === yest)   s.count += 1;           // consecutive — keep going
+    else                       s.count  = 1;           // gap — reset
+    s.lastDate = today;
+
+    try { localStorage.setItem("homework_streak", JSON.stringify(s)); } catch(e) {}
+    return s;
+}
+
+function showStreak(streak) {
+    const badge = document.getElementById("streak-badge");
+    if (streak.count < 2) { badge.style.display = "none"; return; }
+
+    const isMilestone = streak.count % STREAK_GOAL === 0;
+    badge.style.display = "";
+    badge.className = "streak-badge" + (isMilestone ? " milestone" : "");
+
+    if (isMilestone) {
+        badge.textContent = `🏆 ${streak.count}-DAY STREAK! You're a superstar!`;
+        setTimeout(() => {
+            launchConfetti();
+            spawnStreakStars();
+        }, 400);
+    } else {
+        badge.textContent = `🔥 ${streak.count} days in a row!`;
+    }
+}
+
+function spawnStreakStars() {
+    const emojis = ["🏆","⭐","🌟","✨","💫","🎉"];
+    for (let i = 0; i < 12; i++) {
+        setTimeout(() => {
+            const s = document.createElement("div");
+            s.className   = "float-star";
+            s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            s.style.left  = (5 + Math.random() * 90) + "vw";
+            s.style.top   = (30 + Math.random() * 40) + "vh";
+            document.body.appendChild(s);
+            s.addEventListener("animationend", () => s.remove());
+        }, i * 120);
+    }
+}
 
 // ════════════════════════════════════════════════════════════
 //  CONFETTI
