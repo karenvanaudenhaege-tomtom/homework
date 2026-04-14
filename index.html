@@ -969,6 +969,7 @@ function speak() {
     const lang = LANG_LOCALE[G.lang] || "en";
     const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(G.current)}&tl=${lang}&client=gtx`;
     currentAudio = new Audio(url);
+    currentAudio.referrerPolicy = "no-referrer";
     currentAudio.addEventListener("play", () => { G.spokenAt = Date.now(); });
     currentAudio.play().catch(e => console.error("TTS failed:", e));
 }
