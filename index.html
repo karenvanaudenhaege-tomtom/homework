@@ -1021,7 +1021,11 @@ function speak() {
     audio.src = url;
     _audio = audio;
     audio.onplay  = () => { G.spokenAt = Date.now(); dbg("worker TTS ✓", "ok"); };
-    audio.onerror = (e) => { dbg(`worker TTS error: ${e.type}`, "err"); };
+    audio.onerror = () => {
+        const code = audio.error ? audio.error.code : "?";
+        const msg  = audio.error ? audio.error.message : "?";
+        dbg(`worker TTS error: code=${code} msg=${msg}`, "err");
+    };
     audio.play().catch((e) => {
         dbg(`worker failed: ${e.message} — falling back to Web Speech`, "err");
         const utt   = new SpeechSynthesisUtterance(G.current);
