@@ -958,36 +958,19 @@ function resetWords() {
 // ════════════════════════════════════════════════════════════
 //  SPEECH  (Google Translate TTS — no API key required)
 // ════════════════════════════════════════════════════════════
-//  iOS only allows audio.play() from a direct user gesture.
-//  We work around this by pre-unlocking a single persistent
-//  Audio element on the first touch, then reusing it for all
-//  subsequent plays — iOS keeps the permission on the instance.
-// ════════════════════════════════════════════════════════════
 const LANG_LOCALE = { english: "en", afrikaans: "af" };
+let currentAudio = null;
 
-// 1-sample silent WAV — used to unlock the audio element on iOS
-const SILENT_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-const ttsAudio = new Audio();
-
-function initSpeech() {
-    const unlock = () => {
-        ttsAudio.src = SILENT_WAV;
-        ttsAudio.play().catch(() => {});
-    };
-    document.addEventListener("touchstart", unlock, { once: true });
-    document.addEventListener("mousedown",  unlock, { once: true });
-}
+function initSpeech() {}
 
 function speak() {
     if (!G.current) return;
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
     const lang = LANG_LOCALE[G.lang] || "en";
     const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(G.current)}&tl=${lang}&client=gtx`;
-    ttsAudio.pause();
-    ttsAudio.src = url;
-    ttsAudio.load();
-    ttsAudio.play()
-        .then(() => { G.spokenAt = Date.now(); })
-        .catch(e => console.error("TTS failed:", e));
+    currentAudio = new Audio(url);
+    currentAudio.addEventListener("play", () => { G.spokenAt = Date.now(); });
+    currentAudio.play().catch(e => console.error("TTS failed:", e));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1352,7 +1335,7 @@ function showScreen(id) {
 }
 
 function cancelSpeech() {
-    ttsAudio.pause();
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 }
 
 function goHome() {
