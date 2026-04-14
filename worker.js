@@ -27,7 +27,7 @@ export default {
     const origin = request.headers.get("Origin") || "";
 
     const isLocal = origin.startsWith("http://");
-    const isAllowed = isLocal || ALLOWED_HTTPS_ORIGINS.has(origin);
+    const isAllowed = isLocal || ALLOWED_HTTPS_ORIGINS.has(origin) || origin.endsWith(".pages.dev");
 
     if (!isAllowed) {
       return new Response("Forbidden", { status: 403 });
