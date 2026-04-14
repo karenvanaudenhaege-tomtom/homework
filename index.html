@@ -563,6 +563,38 @@
             0%   { transform: translateY(0) scale(1); opacity: 1; }
             100% { transform: translateY(-160px) scale(1.6); opacity: 0; }
         }
+        /* ── DEBUG LOG (TEST_MODE only) ── */
+        #debug-log {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            max-height: 38vh;
+            background: rgba(10,15,10,0.93);
+            color: #a3e635;
+            font-family: monospace;
+            font-size: 0.7rem;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            border-top: 2px solid #4ade80;
+        }
+        #debug-header {
+            padding: 3px 10px;
+            background: #14532d;
+            color: #bbf7d0;
+            font-weight: bold;
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            letter-spacing: 0.05em;
+        }
+        #debug-entries {
+            overflow-y: auto;
+            padding: 4px 10px 6px;
+            flex: 1;
+        }
+        .dbg-line { padding: 1px 0; white-space: pre-wrap; word-break: break-all; }
+        .dbg-ok   { color: #86efac; }
+        .dbg-err  { color: #f87171; }
+        .dbg-info { color: #93c5fd; }
     </style>
 </head>
 <body>
@@ -748,6 +780,12 @@
         <button class="btn btn-home-c" onclick="goHome()">🏠 Choose Different Words</button>
         <button class="btn btn-home-c" onclick="goTheme()">🎨 Change Theme</button>
     </div>
+</div>
+
+<!-- ════════════ DEBUG LOG (TEST_MODE only) ════════════ -->
+<div id="debug-log">
+    <div id="debug-header">🛠 TEST MODE &mdash; debug log (newest first)</div>
+    <div id="debug-entries"></div>
 </div>
 
 <script src="words.js"></script>
@@ -956,20 +994,43 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (Web Speech API — no API key required)
+//  SPEECH  (Cloudflare Worker → Google Translate TTS)
+//  Fallback: Web Speech API
 // ════════════════════════════════════════════════════════════
-const LANG_LOCALE = { english: "en-GB", afrikaans: "af-ZA" };
+const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
+const TTS_LANG   = { english: "en", afrikaans: "af" };
+const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
+
+let _audio = null;
 
 function initSpeech() {}
 
+function cancelSpeech() {
+    if (_audio) { _audio.pause(); _audio.src = ""; _audio = null; }
+    window.speechSynthesis.cancel();
+}
+
 function speak() {
     if (!G.current) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(G.current);
-    utt.lang = LANG_LOCALE[G.lang] || "en-GB";
-    utt.rate = 0.85;
-    utt.onstart = () => { G.spokenAt = Date.now(); };
-    window.speechSynthesis.speak(utt);
+    cancelSpeech();
+    const lang = TTS_LANG[G.lang] || "en";
+    const url  = `${TTS_WORKER}?word=${encodeURIComponent(G.current)}&lang=${encodeURIComponent(lang)}`;
+    dbg(`speak "${G.current}" lang=${lang}`);
+    dbg(`→ ${url}`);
+    const audio = document.createElement("audio");
+    audio.src = url;
+    _audio = audio;
+    audio.onplay  = () => { G.spokenAt = Date.now(); dbg("worker TTS ✓", "ok"); };
+    audio.onerror = (e) => { dbg(`worker TTS error: ${e.type}`, "err"); };
+    audio.play().catch((e) => {
+        dbg(`worker failed: ${e.message} — falling back to Web Speech`, "err");
+        const utt   = new SpeechSynthesisUtterance(G.current);
+        utt.lang    = WSA_LANG[G.lang] || "en-GB";
+        utt.rate    = 0.85;
+        utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
+        utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
+        window.speechSynthesis.speak(utt);
+    });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1048,6 +1109,7 @@ function flipCard() {
     if (G.flipped) return;
 
     const elapsed = G.spokenAt ? Date.now() - G.spokenAt : -1;
+    dbg(`flip — elapsed ${elapsed}ms / required ${ANTI_CHEAT_MS}ms${elapsed >= 0 && elapsed < ANTI_CHEAT_MS ? " ⚠ too soon" : " ✓"}`, elapsed >= 0 && elapsed < ANTI_CHEAT_MS ? "err" : "ok");
     if (!TEST_MODE && elapsed < ANTI_CHEAT_MS) {
         playAlarm();
         const btn = document.getElementById("pre-btns").querySelector(".btn-reveal");
@@ -1333,10 +1395,6 @@ function showScreen(id) {
     document.getElementById(id).classList.add("active");
 }
 
-function cancelSpeech() {
-    window.speechSynthesis.cancel();
-}
-
 function goHome() {
     cancelSpeech();
     showScreen("screen-home");
@@ -1346,6 +1404,20 @@ function goTheme() {
     cancelSpeech();
     document.body.classList.remove("cat-theme");
     showScreen("screen-theme");
+}
+
+// ════════════════════════════════════════════════════════════
+//  DEBUG LOG
+// ════════════════════════════════════════════════════════════
+function dbg(msg, type = "info") {
+    if (!TEST_MODE) return;
+    const el = document.getElementById("debug-entries");
+    const line = document.createElement("div");
+    line.className = "dbg-line dbg-" + type;
+    const t = new Date().toTimeString().slice(0, 8);
+    line.textContent = `[${t}] ${msg}`;
+    el.prepend(line);
+    if (el.children.length > 60) el.removeChild(el.lastChild);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1360,6 +1432,11 @@ loadCustomWords();
 checkWordChange();
 initSpeech();
 refreshCounts();
+if (TEST_MODE) {
+    document.getElementById("debug-log").style.display = "flex";
+    dbg(`app started — worker: ${TTS_WORKER}`);
+}
 </script>
+
 </body>
 </html>
