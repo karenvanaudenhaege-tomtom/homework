@@ -1018,6 +1018,7 @@ function speak() {
     dbg(`speak "${G.current}" lang=${lang}`);
     dbg(`→ ${url}`);
     const audio = document.createElement("audio");
+    audio.crossOrigin = "anonymous";
     audio.src = url;
     _audio = audio;
     audio.onplay  = () => { G.spokenAt = Date.now(); dbg("worker TTS ✓", "ok"); };
