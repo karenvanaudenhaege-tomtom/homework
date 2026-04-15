@@ -308,7 +308,7 @@ const EMOJI_MAP = {
     "grow": "🌱",       "groei": "🌱",
     "jump": "🦘",       "spring": "🦘",
     "laugh": "😂",      "lag": "😂",
-    "live": "🌱",       "leef": "🌱",
+    "live": "🥳",       "leef": "🥳",
     "play": "🎮",       "speel": "🎮",
     "read": "📖",       "lees": "📖",
     "run": "🏃",        "hardloop": "🏃",

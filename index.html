@@ -1303,23 +1303,18 @@ function showComplete() {
 
         const cat = pick(CATS[tier]);
 
-        document.getElementById("complete-title").textContent = title;
-        document.getElementById("cc-rating").textContent = rating;
-        document.getElementById("cc-breed").textContent  = cat.breed;
-        document.getElementById("cc-emoji").textContent  = cat.emoji;
-        document.getElementById("cc-name").textContent   = cat.name;
-        document.getElementById("cc-trait").textContent   = cat.trait;
-        const photo = document.getElementById("cc-photo");
-        photo.style.display = "";
-        photo.src = "images/cats/" + cat.img;
-        document.getElementById("cc-wrd").textContent    = G.done.length;
-        document.getElementById("cc-str").textContent    = G.stars;
-        document.getElementById("cc-acc").textContent    = acc;
-        document.getElementById("cc-1st").textContent    = firstTries;
+        document.getElementById("complete-title").textContent = "Well done! 🎉";
+
+        // Pre-fill static stats — name/breed/emoji revealed by spin
+        document.getElementById("cc-wrd").textContent = G.done.length;
+        document.getElementById("cc-str").textContent = G.stars;
+        document.getElementById("cc-acc").textContent = acc;
+        document.getElementById("cc-1st").textContent = firstTries;
 
         catCard.className = `cat-card cc-${tier}`;
+        document.getElementById("cc-rating").dataset.final = rating;
 
-        _revealData = { theme: "cats", tier, cat };
+        _revealData = { theme: "cats", tier, cat, title };
     } else {
         soccerCard.style.display = "";
         catCard.style.display = "none";
@@ -1362,9 +1357,7 @@ function revealCard() {
     const { theme, tier } = _revealData;
 
     if (theme === "cats") {
-        const catCard = document.getElementById("cat-card");
-        catCard.offsetWidth;
-        catCard.classList.add("cc-animate");
+        spinCatCard(_revealData.cat, tier, _revealData.title);
     } else {
         spinSoccerCard(_revealData.player, tier, _revealData.title);
     }
@@ -1423,6 +1416,53 @@ function spinSoccerCard(finalPlayer, tier, title) {
     document.getElementById("sc-rating").dataset.final = rating;
 
     // Kick off the slot machine
+    nextFrame();
+}
+
+function spinCatCard(finalCat, tier, title) {
+    const allCats = [].concat(
+        CATS.legendary, CATS.rare, CATS.uncommon, CATS.common
+    );
+
+    const catCard = document.getElementById("cat-card");
+    const SPINS = 18;
+    const FINAL = 6;
+    let   frame = 0;
+
+    function nextFrame() {
+        frame++;
+        const done = frame >= SPINS + FINAL;
+        const c    = done ? finalCat : allCats[Math.floor(Math.random() * allCats.length)];
+
+        document.getElementById("cc-name").textContent  = c.name;
+        document.getElementById("cc-breed").textContent = c.breed;
+        document.getElementById("cc-emoji").textContent = c.emoji;
+        document.getElementById("cc-trait").textContent = c.trait;
+        document.getElementById("cc-rating").textContent = done
+            ? document.getElementById("cc-rating").dataset.final || "??"
+            : Math.floor(50 + Math.random() * 49);
+
+        const photo = document.getElementById("cc-photo");
+        if (done) {
+            photo.style.display = "";
+            photo.src = "images/cats/" + finalCat.img;
+        } else {
+            const rc = allCats[Math.floor(Math.random() * allCats.length)];
+            photo.style.display = "";
+            photo.src = "images/cats/" + rc.img;
+        }
+
+        if (!done) {
+            const delay = frame < SPINS ? 60 + frame * 4 : 120 + (frame - SPINS) * 60;
+            setTimeout(nextFrame, delay);
+        } else {
+            document.getElementById("complete-title").textContent = title;
+            catCard.offsetWidth;
+            catCard.classList.add("cc-animate");
+            launchConfetti();
+        }
+    }
+
     nextFrame();
 }
 
