@@ -1137,6 +1137,8 @@ function flipCard() {
 }
 
 function answer(correct) {
+    if (!G.flipped) return;
+    G.flipped = false;
     if (correct) {
         const tries = G.attempts[G.current];
         const earned = tries === 1 ? 3 : tries === 2 ? 2 : 1;

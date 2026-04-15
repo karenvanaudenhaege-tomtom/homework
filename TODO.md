@@ -7,4 +7,6 @@
 - [ ] play video at the end
 - [ ] also add video at the end of the cats theme
 - [ ] add a timer to show how long to wait till you can move on
-- [ ] make it work on iphone
+- [ ] fix the trick that allows to skip words at the end by clicking fast
+- [ ] introduce a spinning wheel at the end to select a soccer card
+- [ ] play sound sooner (long silence when flipping the card)
