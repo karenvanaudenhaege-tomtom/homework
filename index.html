@@ -229,6 +229,22 @@
         .btn-hear   { background: #fff; color: #4F46E5; box-shadow: 0 8px 24px rgba(79,70,229,0.3); }
         .btn-hear.af-active { color: var(--af-color); box-shadow: 0 8px 24px rgba(217,119,6,0.3); }
         .btn-reveal { background: #10B981; color: #fff; box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
+
+        /* ── TIMER BAR ── */
+        #timer-bar-wrap {
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: -4px 0 12px;
+            display: none;
+        }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: #4F46E5;
+            border-radius: 3px;
+        }
         @keyframes shake {
             0%,100% { transform: translateX(0); }
             20%      { transform: translateX(-8px); }
@@ -707,7 +723,8 @@
         <button class="btn btn-hear" id="hear-btn" onclick="speak()">
             🔊 Hear the word
         </button>
-        <button class="btn btn-reveal" onclick="flipCard()">
+        <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+        <button class="btn btn-reveal" id="reveal-btn" onclick="flipCard()">
             ✍️ I've written it — show me!
         </button>
     </div>
@@ -1006,6 +1023,7 @@ let _audio = null;
 function initSpeech() {}
 
 function cancelSpeech() {
+    cancelTimerBar();
     if (_audio) { _audio.pause(); _audio = null; }
     window.speechSynthesis.cancel();
 }
@@ -1013,6 +1031,7 @@ function cancelSpeech() {
 function speak() {
     if (!G.current) return;
     cancelSpeech();
+    startTimerBar();
     const lang = TTS_LANG[G.lang] || "en";
     const url  = `${TTS_WORKER}?word=${encodeURIComponent(G.current)}&lang=${encodeURIComponent(lang)}`;
     dbg(`speak "${G.current}" lang=${lang}`);
@@ -1036,6 +1055,37 @@ function speak() {
         utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
         window.speechSynthesis.speak(utt);
     });
+}
+
+// ════════════════════════════════════════════════════════════
+//  COUNTDOWN TIMER BAR
+// ════════════════════════════════════════════════════════════
+let _timerRAF = null;
+
+function startTimerBar() {
+    if (TEST_MODE || G.flipped) return;
+    const wrap = document.getElementById("timer-bar-wrap");
+    const bar  = document.getElementById("timer-bar");
+    const btn  = document.getElementById("reveal-btn");
+    cancelAnimationFrame(_timerRAF);
+    bar.style.width = "100%";
+    wrap.style.display = "block";
+    btn.disabled = true;
+    const start = Date.now();
+    (function tick() {
+        const pct = Math.max(0, 1 - (Date.now() - start) / ANTI_CHEAT_MS);
+        bar.style.width = (pct * 100) + "%";
+        if (pct > 0) {
+            _timerRAF = requestAnimationFrame(tick);
+        } else {
+            wrap.style.display = "none";
+            btn.disabled = false;
+        }
+    })();
+}
+
+function cancelTimerBar() {
+    cancelAnimationFrame(_timerRAF);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1087,6 +1137,7 @@ function nextWord() {
     setFeedback("");
     updateProgress();
     cancelSpeech();
+    if (!TEST_MODE) document.getElementById("reveal-btn").disabled = true;
     setTimeout(speak, 450);
 }
 
