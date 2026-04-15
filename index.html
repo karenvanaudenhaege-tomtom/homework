@@ -823,6 +823,9 @@
         <button class="btn btn-home-c" onclick="goHome()">🏠 Choose Different Words</button>
         <button class="btn btn-home-c" onclick="goTheme()">🎨 Change Theme</button>
     </div>
+    <p id="cat-attribution" style="display:none;font-size:0.6rem;opacity:0.45;margin-top:12px;text-align:center;">
+        Cat images by <a href="https://www.freepik.com" style="color:inherit;">Freepik</a>
+    </p>
 </div>
 
 <!-- ════════════ DEBUG LOG (TEST_MODE only) ════════════ -->
@@ -1293,6 +1296,8 @@ let _revealData = null; // stored until user taps the reveal overlay
 
 function showComplete() {
     showScreen("screen-complete");
+    document.getElementById("cat-attribution").style.display =
+        currentTheme === "cats" ? "" : "none";
 
     const pct        = G.maxStars > 0 ? G.stars / G.maxStars : 0;
     const rating     = Math.max(50, Math.round(50 + pct * 49));   // 50–99
