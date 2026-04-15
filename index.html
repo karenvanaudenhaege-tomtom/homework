@@ -1106,14 +1106,22 @@ function speak() {
 let _timerRAF = null;
 
 function startTimerBar() {
-    if (TEST_MODE || G.flipped) return;
+    if (G.flipped) return;
     const wrap = document.getElementById("timer-bar-wrap");
     const bar  = document.getElementById("timer-bar");
     const btn  = document.getElementById("reveal-btn");
     cancelAnimationFrame(_timerRAF);
+    btn.disabled = true;
+
+    if (ANTI_CHEAT_MS === 0) {
+        // No wait — re-enable immediately and hide bar
+        wrap.style.display = "none";
+        btn.disabled = false;
+        return;
+    }
+
     bar.style.width = "100%";
     wrap.style.display = "block";
-    btn.disabled = true;
     const start = Date.now();
     (function tick() {
         const pct = Math.max(0, 1 - (Date.now() - start) / ANTI_CHEAT_MS);
@@ -1183,7 +1191,7 @@ function nextWord() {
     setFeedback("");
     updateProgress();
     cancelSpeech();
-    if (!TEST_MODE) document.getElementById("reveal-btn").disabled = true;
+    document.getElementById("reveal-btn").disabled = true;
     setTimeout(speak, 150);
 }
 
