@@ -600,29 +600,32 @@
         /* ── DEBUG LOG (TEST_MODE only) ── */
         #debug-log {
             position: fixed;
-            bottom: 0; left: 0; right: 0;
-            max-height: 38vh;
-            background: rgba(10,15,10,0.93);
+            bottom: 8px; right: 8px;
+            width: 300px;
+            max-height: 130px;
+            background: rgba(10,15,10,0.92);
             color: #a3e635;
             font-family: monospace;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             z-index: 9999;
             display: none;
             flex-direction: column;
-            border-top: 2px solid #4ade80;
+            border: 1px solid #4ade80;
+            border-radius: 6px;
+            overflow: hidden;
         }
         #debug-header {
-            padding: 3px 10px;
+            padding: 2px 8px;
             background: #14532d;
             color: #bbf7d0;
             font-weight: bold;
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             flex-shrink: 0;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
         }
         #debug-entries {
             overflow-y: auto;
-            padding: 4px 10px 6px;
+            padding: 3px 8px 4px;
             flex: 1;
         }
         .dbg-line { padding: 1px 0; white-space: pre-wrap; word-break: break-all; }
