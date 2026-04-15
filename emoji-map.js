@@ -168,7 +168,7 @@ const EMOJI_MAP = {
     "nose": "👃",       "neus": "👃",
     "skin": "🫁",       "vel": "🩹",
     "stomach": "🫃",    "maag": "🫃",
-    "throat": "🎙️",    "keel": "🎙️",
+    "throat": "🗣️",    "keel": "🗣️",
     "toe": "🦶",        "toon": "🦶",
     "tooth": "🦷",      "tand": "🦷",
 
