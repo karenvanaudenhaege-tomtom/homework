@@ -26,7 +26,7 @@ const WEEKLY_WORDS = {
         "joy",
         "toy",
         "annoy",
-        "play",
+        "ploy",
         "destroy",
         "soil",
         "moist",
