@@ -320,7 +320,7 @@ const EMOJI_MAP = {
     "live": "🥳",       "leef": "🥳",
     "loop": "🚶",
     "play": "🎮",       "speel": "🎮",
-    "ploy": "🎭",
+    "ploy": "😏",
     "read": "📖",       "lees": "📖",
     "run": "🏃",        "hardloop": "🏃",
     "sing": "🎤",       "sing": "🎤",
