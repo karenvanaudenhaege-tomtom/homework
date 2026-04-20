@@ -22,30 +22,31 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "tree",
-        "free",
-        "sweet",
-        "green",
-        "milk",
-        "silk",
-        "drop",
-        "stop",
-        "frog",
-        "grab",
-        "crab"
+        "boy",
+        "joy",
+        "toy",
+        "annoy",
+        "play",
+        "destroy",
+        "soil",
+        "moist",
+        "spoilt",
+        "avoid",
+        "coin",
+        "boil"
     ],
 
     afrikaans: [
-        "see",
-        "been",
-        "tee",
-        "neef",
-        "meel",
-        "weer",
-        "seep",
-        "keel",
-        "speel",
-        "leef"
+        "boot",
+        "koop",
+        "loop",
+        "rook",
+        "oom",
+        "knoop",
+        "kook",
+        "oop",
+        "stoot",
+        "doos"
     ]
 
 };
