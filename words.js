@@ -22,31 +22,30 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "boy",
-        "joy",
-        "toy",
-        "annoy",
-        "ploy",
-        "destroy",
-        "soil",
-        "moist",
-        "spoilt",
-        "avoid",
-        "coin",
-        "boil"
+        "tea",
+        "keep",
+        "see",
+        "sea",
+        "seen",
+        "seam",
+        "beam",
+        "been",
+        "dream",
+        "ream",
+        "read",
+        "reed"
     ],
 
     afrikaans: [
-        "boot",
-        "koop",
-        "loop",
-        "rook",
-        "oom",
-        "knoop",
-        "kook",
-        "oop",
-        "stoot",
-        "doos"
+        "huur",
+        "muur",
+        "skuur",
+        "vuur",
+        "buurmur",
+        "duur",
+        "suur",
+        "nuur",
+        "bestuur"
     ]
 
 };
