@@ -44,7 +44,7 @@ const WEEKLY_WORDS = {
         "buurmur",
         "duur",
         "suur",
-        "nuur",
+        "nuus",
         "bestuur"
     ]
 
