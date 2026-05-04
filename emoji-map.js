@@ -201,7 +201,7 @@ const EMOJI_MAP = {
     // ── HOME & OBJECTS ───────────────────────────────────────
     "bag": "👜",        "sak": "👜",
     "beam": "🔆",
-    "buurmur": "🧱",
+    "buurman": "🧑‍🤝‍🧑",
     "ball": "⚽",       "bal": "⚽",
     "bed": "🛏️",       "bed": "🛏️",
     "bell": "🔔",       "klok": "🔔",

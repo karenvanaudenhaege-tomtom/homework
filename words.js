@@ -41,7 +41,7 @@ const WEEKLY_WORDS = {
         "muur",
         "skuur",
         "vuur",
-        "buurmur",
+        "buurman",
         "duur",
         "suur",
         "nuus",
