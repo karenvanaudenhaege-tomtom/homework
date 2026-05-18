@@ -22,30 +22,30 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "tea",
-        "keep",
-        "see",
-        "sea",
-        "seen",
-        "seam",
-        "beam",
-        "been",
-        "dream",
-        "ream",
-        "read",
-        "reed"
+        "ray",
+        "spray",
+        "sway",
+        "may",
+        "whale",
+        "scale",
+        "pale",
+        "tale",
+        "pain",
+        "contain",
+        "grain",
+        "sprain"
     ],
 
     afrikaans: [
-        "huur",
-        "muur",
-        "skuur",
-        "vuur",
-        "buurman",
-        "duur",
-        "suur",
-        "nuus",
-        "bestuur"
+        "tien",
+        "miep",
+        "fiets",
+        "lied",
+        "piesang",
+        "wiel",
+        "rivier",
+        "drie",
+        "brief"
     ]
 
 };
