@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=6"></script>
-<script src="emoji-map.js?v=6"></script>
+<script src="words.js?v=7"></script>
+<script src="emoji-map.js?v=7"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1308,7 +1308,7 @@ function showComplete() {
         else if (rating >= 65) { tier = "uncommon";   title = "Well done! Great effort! 💕";   }
         else                   { tier = "common";     title = "Good try! Keep going! 🐱";      }
 
-        const cat = pick(CATS[tier]);
+        const cat = pickNoRepeat(CATS[tier], "hw_cats_" + tier);
 
         document.getElementById("complete-title").textContent = "Well done! 🎉";
 
@@ -1332,7 +1332,7 @@ function showComplete() {
         else if (rating >= 65) { tier = "silver"; title = "Well done! Great effort! 🥈"; }
         else                   { tier = "bronze"; title = "Good try! Keep going! 💪";    }
 
-        const player = pick(PLAYERS[tier]);
+        const player = pickNoRepeat(PLAYERS[tier], "hw_players_" + tier);
 
         document.getElementById("complete-title").textContent = "Well done! 🎉";
 
@@ -1651,6 +1651,18 @@ function dbg(msg, type = "info") {
 //  HELPERS
 // ════════════════════════════════════════════════════════════
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Like a shuffled deck: cycles through every item before repeating any.
+// Queue is persisted in localStorage so it survives across sessions.
+function pickNoRepeat(arr, storageKey) {
+    let queue;
+    try { queue = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e) { queue = []; }
+    queue = queue.filter(i => i < arr.length); // drop stale indices if arr shrank
+    if (queue.length === 0) queue = shuffle(arr.map((_, i) => i));
+    const idx = queue.shift();
+    try { localStorage.setItem(storageKey, JSON.stringify(queue)); } catch(e) {}
+    return arr[idx];
+}
 
 // ════════════════════════════════════════════════════════════
 //  INIT
