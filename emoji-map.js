@@ -416,7 +416,6 @@ const EMOJI_MAP = {
     "lied": "🎵",
     "magic": "✨",      "magie": "✨",
     "may": "🌸",
-    "miep": "🐭",
     "money": "💰",      "geld": "💰",
     "music": "🎵",      "musiek": "🎵",
     "name": "🏷️",      "naam": "🏷️",

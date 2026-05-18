@@ -38,7 +38,7 @@ const WEEKLY_WORDS = {
 
     afrikaans: [
         "tien",
-        "miep",
+        "mier",
         "fiets",
         "lied",
         "piesang",
