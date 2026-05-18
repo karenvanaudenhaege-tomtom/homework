@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=8"></script>
-<script src="emoji-map.js?v=8"></script>
+<script src="words.js?v=9"></script>
+<script src="emoji-map.js?v=9"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -852,69 +852,53 @@ function chooseTheme(theme) {
     showScreen("screen-home");
 }
 
-// ── Cat card reward cats, grouped by performance tier ──
-const CATS = {
-    legendary: [
-        { name: "BUSINESS CAT", breed: "SUIT CAT",      emoji: "💼", trait: "VERY IMPORTANT",  img: "anthropomorphic-portrait-animal-dressed-human-clothes-doing-daily-activities.jpg" },
-        { name: "DR. MEOW",     breed: "DOCTOR CAT",    emoji: "🩺", trait: "PURR-SCRIPTION",  img: "view-funny-doctor-cat.jpg" },
-        { name: "COOL CATS",    breed: "SHADES CAT",    emoji: "😎", trait: "TOO COOL",        img: "joyful-cats-with-sunglasses.jpg" },
-        { name: "SWAGGY",       breed: "SHADES KITTEN", emoji: "🕶️", trait: "DRIPPY",          img: "adorable-looking-kitten-with-sunglasses.jpg" },
-    ],
-    rare: [
-        { name: "SANTA CLAWS",  breed: "CHRISTMAS CAT", emoji: "🎄", trait: "VERY FESTIVE",    img: "scottish-fold-cat-wearing-red-bow-celebrating-christmas.jpg" },
-        { name: "DERPY",        breed: "SILLY CAT",     emoji: "😜", trait: "MAXIMUM SILLY",   img: "funny-image-with-animal.jpg" },
-        { name: "HAPPY",        breed: "FUN CAT",       emoji: "🎉", trait: "ALWAYS SMILING",  img: "joyful-cat-having-fun.jpg" },
-        { name: "GOOFBALL",     breed: "WEIRD CAT",     emoji: "🤪", trait: "ABSOLUTE CHAOS",  img: "view-funny-animal.jpg" },
-    ],
-    uncommon: [
-        { name: "SNEAKY",       breed: "MYSTERY CAT",   emoji: "👀", trait: "ALWAYS PLOTTING", img: "bUQvYwL24tiNJkG6.jpg" },
-        { name: "FLOOFY",       breed: "BIG FLOOF",     emoji: "☁️", trait: "EXTRA FLUFFY",    img: "7aqq2nCe7IiZEKjJ.jpg" },
-        { name: "GRUMPY",       breed: "MAD CAT",       emoji: "😠", trait: "DO NOT PET",      img: "0M0Lo3dsYft79xNd.png" },
-        { name: "ZOOMIES",      breed: "FAST CAT",      emoji: "💨", trait: "SUPER SPEEDY",    img: "1si02A2ZNdeNH3yo.jpg" },
-    ],
-    common: [
-        { name: "NAPPER",       breed: "LAZY CAT",      emoji: "💤", trait: "ALWAYS ASLEEP",   img: "2eXYJhGolHqOAKaM.jpg" },
-        { name: "LOAF",         breed: "BREAD CAT",     emoji: "🍞", trait: "PERFECT LOAF",    img: "10235347.jpg" },
-        { name: "STARE",        breed: "JUDGY CAT",     emoji: "👁️", trait: "JUDGING YOU",     img: "2558008.jpg" },
-    ],
-};
+// ── Cat card rewards ──
+const ALL_CATS = [
+    { name: "BUSINESS CAT", breed: "SUIT CAT",      emoji: "💼", trait: "VERY IMPORTANT",  img: "anthropomorphic-portrait-animal-dressed-human-clothes-doing-daily-activities.jpg" },
+    { name: "DR. MEOW",     breed: "DOCTOR CAT",    emoji: "🩺", trait: "PURR-SCRIPTION",  img: "view-funny-doctor-cat.jpg" },
+    { name: "COOL CATS",    breed: "SHADES CAT",    emoji: "😎", trait: "TOO COOL",        img: "joyful-cats-with-sunglasses.jpg" },
+    { name: "SWAGGY",       breed: "SHADES KITTEN", emoji: "🕶️", trait: "DRIPPY",          img: "adorable-looking-kitten-with-sunglasses.jpg" },
+    { name: "SANTA CLAWS",  breed: "CHRISTMAS CAT", emoji: "🎄", trait: "VERY FESTIVE",    img: "scottish-fold-cat-wearing-red-bow-celebrating-christmas.jpg" },
+    { name: "DERPY",        breed: "SILLY CAT",     emoji: "😜", trait: "MAXIMUM SILLY",   img: "funny-image-with-animal.jpg" },
+    { name: "HAPPY",        breed: "FUN CAT",       emoji: "🎉", trait: "ALWAYS SMILING",  img: "joyful-cat-having-fun.jpg" },
+    { name: "GOOFBALL",     breed: "WEIRD CAT",     emoji: "🤪", trait: "ABSOLUTE CHAOS",  img: "view-funny-animal.jpg" },
+    { name: "SNEAKY",       breed: "MYSTERY CAT",   emoji: "👀", trait: "ALWAYS PLOTTING", img: "bUQvYwL24tiNJkG6.jpg" },
+    { name: "FLOOFY",       breed: "BIG FLOOF",     emoji: "☁️", trait: "EXTRA FLUFFY",    img: "7aqq2nCe7IiZEKjJ.jpg" },
+    { name: "GRUMPY",       breed: "MAD CAT",       emoji: "😠", trait: "DO NOT PET",      img: "0M0Lo3dsYft79xNd.png" },
+    { name: "ZOOMIES",      breed: "FAST CAT",      emoji: "💨", trait: "SUPER SPEEDY",    img: "1si02A2ZNdeNH3yo.jpg" },
+    { name: "NAPPER",       breed: "LAZY CAT",      emoji: "💤", trait: "ALWAYS ASLEEP",   img: "2eXYJhGolHqOAKaM.jpg" },
+    { name: "LOAF",         breed: "BREAD CAT",     emoji: "🍞", trait: "PERFECT LOAF",    img: "10235347.jpg" },
+    { name: "STARE",        breed: "JUDGY CAT",     emoji: "👁️", trait: "JUDGING YOU",     img: "2558008.jpg" },
+];
 
-// ── Soccer card reward players, grouped by performance tier ──
-const PLAYERS = {
-    toty: [
-        { name: "HAALAND",    club: "MAN CITY",     flag: "🇳🇴", pos: "ST",  img: "haaland"    },
-        { name: "MBAPPÉ",     club: "REAL MADRID",  flag: "🇫🇷", pos: "ST",  img: "mbappe"     },
-        { name: "MESSI",      club: "INTER MIAMI",  flag: "🇦🇷", pos: "CF",  img: "messi"      },
-        { name: "VINICIUS",   club: "REAL MADRID",  flag: "🇧🇷", pos: "LW",  img: "vinicius"   },
-        { name: "RONALDO",    club: "AL NASSR",     flag: "🇵🇹", pos: "ST",  img: "ronaldo"    },
-    ],
-    gold: [
-        { name: "BELLINGHAM", club: "REAL MADRID",  flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "CAM", img: "bellingham" },
-        { name: "SAKA",       club: "ARSENAL",      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "RW",  img: "saka"       },
-        { name: "YAMAL",      club: "BARCELONA",    flag: "🇪🇸", pos: "RW",  img: "yamal"      },
-        { name: "SALAH",      club: "LIVERPOOL",    flag: "🇪🇬", pos: "RW",  img: "salah"      },
-        { name: "DE BRUYNE",  club: "MAN CITY",     flag: "🇧🇪", pos: "CAM", img: "debruyne"   },
-        { name: "PEDRI",      club: "BARCELONA",    flag: "🇪🇸", pos: "CM",  img: "pedri"      },
-        { name: "FODEN",      club: "MAN CITY",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "CAM", img: "foden"      },
-        { name: "VALVERDE",   club: "REAL MADRID",  flag: "🇺🇾", pos: "CM",  img: "valverde"   },
-        { name: "TAA",        club: "REAL MADRID",  flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "RB",  img: "taa"        },
-        { name: "WIRTZ",      club: "LEVERKUSEN",   flag: "🇩🇪", pos: "CAM", img: "wirtz"      },
-    ],
-    silver: [
-        { name: "PERCY TAU",  club: "CAPE TOWN",    flag: "🇿🇦", pos: "LW",  img: "percytau"   },
-        { name: "DOLLY",      club: "CAPE TOWN",    flag: "🇿🇦", pos: "LW",  img: "dolly"      },
-        { name: "KANE",       club: "BAYERN",       flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "ST",  img: "kane"       },
-        { name: "NEYMAR",     club: "SANTOS",       flag: "🇧🇷", pos: "LW",  img: "neymar"     },
-        { name: "LEÃO",       club: "AC MILAN",     flag: "🇵🇹", pos: "LW",  img: "leao"       },
-    ],
-    bronze: [
-        { name: "NGEZANA",    club: "SUNDOWNS",     flag: "🇿🇦", pos: "CB",  img: "ngezana"    },
-        { name: "GAVI",       club: "BARCELONA",    flag: "🇪🇸", pos: "CM",  img: "gavi"       },
-        { name: "ANSU FATI",  club: "BARCELONA",    flag: "🇪🇸", pos: "LW",  img: "fati"       },
-        { name: "RICE",       club: "ARSENAL",      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "DM",  img: "rice"       },
-        { name: "MARTÍNEZ",   club: "INTER MILAN",  flag: "🇦🇷", pos: "ST",  img: "martinez"   },
-    ],
-};
+// ── Soccer card reward players ──
+const ALL_PLAYERS = [
+    { name: "HAALAND",    club: "MAN CITY",     flag: "🇳🇴", pos: "ST",  img: "haaland"    },
+    { name: "MBAPPÉ",     club: "REAL MADRID",  flag: "🇫🇷", pos: "ST",  img: "mbappe"     },
+    { name: "MESSI",      club: "INTER MIAMI",  flag: "🇦🇷", pos: "CF",  img: "messi"      },
+    { name: "VINICIUS",   club: "REAL MADRID",  flag: "🇧🇷", pos: "LW",  img: "vinicius"   },
+    { name: "RONALDO",    club: "AL NASSR",     flag: "🇵🇹", pos: "ST",  img: "ronaldo"    },
+    { name: "BELLINGHAM", club: "REAL MADRID",  flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "CAM", img: "bellingham" },
+    { name: "SAKA",       club: "ARSENAL",      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "RW",  img: "saka"       },
+    { name: "YAMAL",      club: "BARCELONA",    flag: "🇪🇸", pos: "RW",  img: "yamal"      },
+    { name: "SALAH",      club: "LIVERPOOL",    flag: "🇪🇬", pos: "RW",  img: "salah"      },
+    { name: "DE BRUYNE",  club: "MAN CITY",     flag: "🇧🇪", pos: "CAM", img: "debruyne"   },
+    { name: "PEDRI",      club: "BARCELONA",    flag: "🇪🇸", pos: "CM",  img: "pedri"      },
+    { name: "FODEN",      club: "MAN CITY",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "CAM", img: "foden"      },
+    { name: "VALVERDE",   club: "REAL MADRID",  flag: "🇺🇾", pos: "CM",  img: "valverde"   },
+    { name: "TAA",        club: "REAL MADRID",  flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "RB",  img: "taa"        },
+    { name: "WIRTZ",      club: "LEVERKUSEN",   flag: "🇩🇪", pos: "CAM", img: "wirtz"      },
+    { name: "PERCY TAU",  club: "CAPE TOWN",    flag: "🇿🇦", pos: "LW",  img: "percytau"   },
+    { name: "DOLLY",      club: "CAPE TOWN",    flag: "🇿🇦", pos: "LW",  img: "dolly"      },
+    { name: "KANE",       club: "BAYERN",       flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "ST",  img: "kane"       },
+    { name: "NEYMAR",     club: "SANTOS",       flag: "🇧🇷", pos: "LW",  img: "neymar"     },
+    { name: "LEÃO",       club: "AC MILAN",     flag: "🇵🇹", pos: "LW",  img: "leao"       },
+    { name: "NGEZANA",    club: "SUNDOWNS",     flag: "🇿🇦", pos: "CB",  img: "ngezana"    },
+    { name: "GAVI",       club: "BARCELONA",    flag: "🇪🇸", pos: "CM",  img: "gavi"       },
+    { name: "ANSU FATI",  club: "BARCELONA",    flag: "🇪🇸", pos: "LW",  img: "fati"       },
+    { name: "RICE",       club: "ARSENAL",      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", pos: "DM",  img: "rice"       },
+    { name: "MARTÍNEZ",   club: "INTER MILAN",  flag: "🇦🇷", pos: "ST",  img: "martinez"   },
+];
 
 const LANG_CFG = {
     english:   { langCode: "en-GB", cardClass: "en-back", hearClass: "",            icons: ["🎲","🎯","🎪","🌟","🎮"] },
@@ -1302,49 +1286,35 @@ function showComplete() {
         soccerCard.style.display = "none";
         catCard.style.display = "";
 
-        let tier, title;
-        if      (rating >= 90) { tier = "legendary"; title = "PURRFECT! You're a legend! 🌟"; }
-        else if (rating >= 80) { tier = "rare";      title = "AMAZING! You're pawsome! 🐾";   }
-        else if (rating >= 65) { tier = "uncommon";   title = "Well done! Great effort! 💕";   }
-        else                   { tier = "common";     title = "Good try! Keep going! 🐱";      }
-
-        const cat = pickNoRepeat(CATS[tier], "hw_cats_" + tier);
+        const cat = pickNoRepeat(ALL_CATS, "hw_cats");
 
         document.getElementById("complete-title").textContent = "Well done! 🎉";
 
-        // Pre-fill static stats — name/breed/emoji revealed by spin
         document.getElementById("cc-wrd").textContent = G.done.length;
         document.getElementById("cc-str").textContent = G.stars;
         document.getElementById("cc-acc").textContent = acc;
         document.getElementById("cc-1st").textContent = firstTries;
 
-        catCard.className = `cat-card cc-${tier}`;
+        catCard.className = "cat-card cc-rare";
         document.getElementById("cc-rating").dataset.final = rating;
 
-        _revealData = { theme: "cats", tier, cat, title };
+        _revealData = { theme: "cats", cat };
     } else {
         soccerCard.style.display = "";
         catCard.style.display = "none";
 
-        let tier, title;
-        if      (rating >= 90) { tier = "toty";   title = "WHAT A LEGEND! 🌟";          }
-        else if (rating >= 80) { tier = "gold";   title = "AMAZING! You're a star! 🏆"; }
-        else if (rating >= 65) { tier = "silver"; title = "Well done! Great effort! 🥈"; }
-        else                   { tier = "bronze"; title = "Good try! Keep going! 💪";    }
-
-        const player = pickNoRepeat(PLAYERS[tier], "hw_players_" + tier);
+        const player = pickNoRepeat(ALL_PLAYERS, "hw_players");
 
         document.getElementById("complete-title").textContent = "Well done! 🎉";
 
-        // Pre-fill static stats (words/stars/acc/1st) — name/club/pos/flag revealed by spin
         document.getElementById("sc-wrd").textContent = G.done.length;
         document.getElementById("sc-str").textContent = G.stars;
         document.getElementById("sc-acc").textContent = acc;
         document.getElementById("sc-1st").textContent = firstTries;
 
-        soccerCard.className = `soccer-card sc-${tier}`;
+        soccerCard.className = "soccer-card sc-gold";
 
-        _revealData = { theme: "soccer", tier, player, title };
+        _revealData = { theme: "soccer", player };
     }
 
     // // Show the screenshot prompt overlay — card animates only after tap
@@ -1361,21 +1331,18 @@ function revealCard() {
     overlay.style.display = "none";
 
     if (!_revealData) return;
-    const { theme, tier } = _revealData;
+    const { theme } = _revealData;
 
     if (theme === "cats") {
-        spinCatCard(_revealData.cat, tier, _revealData.title);
+        spinCatCard(_revealData.cat);
     } else {
-        spinSoccerCard(_revealData.player, tier, _revealData.title);
+        spinSoccerCard(_revealData.player);
     }
     _revealData = null;
 }
 
-function spinSoccerCard(finalPlayer, tier, title) {
-    // Collect all players across all tiers for the slot-machine effect
-    const allPlayers = [].concat(
-        PLAYERS.toty, PLAYERS.gold, PLAYERS.silver, PLAYERS.bronze
-    );
+function spinSoccerCard(finalPlayer) {
+    const allPlayers = ALL_PLAYERS;
 
     const soccerCard = document.getElementById("soccer-card");
     const SPINS = 18;   // number of flicker frames
@@ -1407,12 +1374,9 @@ function spinSoccerCard(finalPlayer, tier, title) {
         }
 
         if (!done) {
-            // Start fast, slow down for the last FINAL frames
             const delay = frame < SPINS ? 60 + frame * 4 : 120 + (frame - SPINS) * 60;
             setTimeout(nextFrame, delay);
         } else {
-            // Final card: set correct title and animate
-            document.getElementById("complete-title").textContent = title;
             soccerCard.offsetWidth;
             soccerCard.classList.add("sc-animate");
             launchConfetti();
@@ -1428,10 +1392,8 @@ function spinSoccerCard(finalPlayer, tier, title) {
     nextFrame();
 }
 
-function spinCatCard(finalCat, tier, title) {
-    const allCats = [].concat(
-        CATS.legendary, CATS.rare, CATS.uncommon, CATS.common
-    );
+function spinCatCard(finalCat) {
+    const allCats = ALL_CATS;
 
     const catCard = document.getElementById("cat-card");
     const SPINS = 18;
@@ -1466,7 +1428,6 @@ function spinCatCard(finalCat, tier, title) {
             const delay = frame < SPINS ? 60 + frame * 4 : 120 + (frame - SPINS) * 60;
             setTimeout(nextFrame, delay);
         } else {
-            document.getElementById("complete-title").textContent = title;
             catCard.offsetWidth;
             catCard.classList.add("cc-animate");
             launchConfetti();
