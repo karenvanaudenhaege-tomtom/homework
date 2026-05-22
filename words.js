@@ -22,18 +22,27 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "ray",
-        "spray",
-        "sway",
-        "may",
-        "whale",
-        "scale",
-        "pale",
-        "tale",
-        "pain",
-        "contain",
-        "grain",
-        "sprain"
+        "mouse",
+        "house",
+        "sound",
+        "round",
+        "pound",
+        "owl",
+        "crown",
+        "brown",
+        "town",
+        "bowl",
+        "clown",
+        "sheep",
+        "shout",
+        "shop",
+        "shark",
+        "shoot",
+        "shock",
+        "champ",
+        "chat",
+        "child",
+        "chill"
     ],
 
     afrikaans: [
