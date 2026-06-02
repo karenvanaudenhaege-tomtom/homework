@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=15"></script>
-<script src="emoji-map.js?v=15"></script>
+<script src="words.js?v=16"></script>
+<script src="emoji-map.js?v=16"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1022,21 +1022,11 @@ const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
 const TTS_LANG   = { english: "en", afrikaans: "af" };
 const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
 
-let _audio    = null;
-let _prefetch = null; // { audio, word, lang }
-let _speakId  = 0;   // incremented on every speak() call; stale callbacks bail out early
+let _audio   = null;
+let _speakId = 0;   // incremented on every speak() call; stale callbacks bail out early
 
 function initSpeech() {}
 
-function prefetchAudio(word, lang) {
-    if (TEST_MODE) return;
-    const ttsLang = TTS_LANG[lang] || "en";
-    const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
-    const audio = document.createElement("audio");
-    audio.crossOrigin = "anonymous";
-    audio.preload = "auto";
-    audio.src = url;
-    _prefetch = { audio, word, lang };
 }
 
 function silenceAudio(a) {
@@ -1066,19 +1056,11 @@ function speak() {
     const ttsLang = TTS_LANG[G.lang] || "en";
     const wsaLang = G.lang;
 
-    let audio;
-    if (_prefetch && _prefetch.word === word && _prefetch.lang === G.lang) {
-        audio = _prefetch.audio;
-        _prefetch = null;
-        dbg(`speak "${word}" lang=${ttsLang} (prefetched)`);
-    } else {
-        const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
-        dbg(`speak "${word}" lang=${ttsLang}`);
-        dbg(`→ ${url}`);
-        audio = document.createElement("audio");
-        audio.crossOrigin = "anonymous";
-        audio.src = url;
-    }
+    const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+    dbg(`speak "${word}" lang=${ttsLang}`);
+    const audio = document.createElement("audio");
+    audio.crossOrigin = "anonymous";
+    audio.src = url;
     _audio = audio;
 
     // onerror and play().catch() can both fire for a network error — only fall back once,
@@ -1173,16 +1155,6 @@ function shuffle(a) {
 }
 
 function startGame(lang) {
-    // Unlock the audio session synchronously while we're inside the user gesture.
-    // On iOS, audio.play() called from setTimeout is outside the gesture window and
-    // will be blocked — playing a silent clip here establishes the session so the
-    // subsequent speak() (150ms later) can play without a gesture.
-    try {
-        const unlock = document.createElement("audio");
-        unlock.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
-        unlock.play().catch(() => {});
-    } catch(e) {}
-
     const words = getWords(lang);
     G.lang     = lang;
     G.queue    = shuffle(words);
@@ -1192,17 +1164,16 @@ function startGame(lang) {
     G.maxStars = words.length * 3;
     words.forEach(w => G.attempts[w] = 0);
     showScreen("screen-practice");
-    nextWord();
+    // Pass syncSpeak=true so speak() is called synchronously while we're still
+    // inside the tap event handler — iOS requires a user gesture for audio.play().
+    nextWord(true);
 }
 
-function nextWord() {
+function nextWord(syncSpeak) {
     if (G.queue.length === 0) { showComplete(); return; }
 
     G.current = G.queue[0];
     G.flipped = false;
-
-    // Prefetch the audio for the next word while the card is loading
-    if (G.queue.length > 1) prefetchAudio(G.queue[1], G.lang);
 
     const emoji = EMOJI_MAP[G.current] || pick(LANG_CFG[G.lang].icons);
     document.getElementById("q-icon").textContent = emoji;
@@ -1223,7 +1194,10 @@ function nextWord() {
     updateProgress();
     cancelSpeech();
     document.getElementById("reveal-btn").disabled = true;
-    setTimeout(speak, 150);
+    // syncSpeak: called from startGame() — still inside the iOS user-gesture window,
+    // so audio.play() is allowed without a separate tap.
+    if (syncSpeak) speak();
+    else setTimeout(speak, 150);
 }
 
 const ANTI_CHEAT_MS = TEST_MODE ? 0 : (typeof ANTI_CHEAT_SECONDS === "number" ? ANTI_CHEAT_SECONDS : 6) * 1000;
