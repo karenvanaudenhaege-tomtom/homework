@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=14"></script>
-<script src="emoji-map.js?v=14"></script>
+<script src="words.js?v=15"></script>
+<script src="emoji-map.js?v=15"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1024,6 +1024,7 @@ const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
 
 let _audio    = null;
 let _prefetch = null; // { audio, word, lang }
+let _speakId  = 0;   // incremented on every speak() call; stale callbacks bail out early
 
 function initSpeech() {}
 
@@ -1054,13 +1055,14 @@ function cancelSpeech() {
 
 function speak() {
     if (!G.current) return;
-    // Cancel previous audio only — timer keeps running
+    const myId = ++_speakId; // all async callbacks from this call check myId === _speakId
+
     silenceAudio(_audio);
     _audio = null;
     window.speechSynthesis.cancel();
     startTimerBar(); // no-op if already started for this card
 
-    const word    = G.current; // capture now — async callbacks must use this, not G.current
+    const word    = G.current; // capture now — async callbacks must not use G.current
     const ttsLang = TTS_LANG[G.lang] || "en";
     const wsaLang = G.lang;
 
@@ -1079,21 +1081,31 @@ function speak() {
     }
     _audio = audio;
 
-    // Guard: onerror and play().catch() can both fire for a network error — only fall back once
+    // onerror and play().catch() can both fire for a network error — only fall back once,
+    // and only if this speak() call hasn't been superseded by a newer one.
     let fellBack = false;
     const fallback = (reason) => {
+        if (myId !== _speakId) return; // a newer speak() call has taken over
         if (fellBack) return;
         fellBack = true;
         dbg(`${reason} — falling back to Web Speech`, "err");
         const utt = new SpeechSynthesisUtterance(word);
         utt.lang    = WSA_LANG[wsaLang] || "en-GB";
         utt.rate    = 0.85;
-        utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
+        utt.onstart = () => {
+            if (myId !== _speakId) return;
+            G.spokenAt = Date.now();
+            dbg(`Web Speech ✓ lang=${utt.lang}`, "ok");
+        };
         utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
         window.speechSynthesis.speak(utt);
     };
 
-    audio.onplay  = () => { G.spokenAt = Date.now(); dbg("worker TTS ✓", "ok"); };
+    audio.onplay  = () => {
+        if (myId !== _speakId) return;
+        G.spokenAt = Date.now();
+        dbg("worker TTS ✓", "ok");
+    };
     audio.onerror = () => {
         const code = audio.error ? audio.error.code : "?";
         fallback(`worker TTS error code=${code}`);
@@ -1161,6 +1173,16 @@ function shuffle(a) {
 }
 
 function startGame(lang) {
+    // Unlock the audio session synchronously while we're inside the user gesture.
+    // On iOS, audio.play() called from setTimeout is outside the gesture window and
+    // will be blocked — playing a silent clip here establishes the session so the
+    // subsequent speak() (150ms later) can play without a gesture.
+    try {
+        const unlock = document.createElement("audio");
+        unlock.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+        unlock.play().catch(() => {});
+    } catch(e) {}
+
     const words = getWords(lang);
     G.lang     = lang;
     G.queue    = shuffle(words);
