@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=19"></script>
-<script src="emoji-map.js?v=19"></script>
+<script src="words.js?v=20"></script>
+<script src="emoji-map.js?v=20"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -852,7 +852,7 @@ function chooseTheme(theme) {
     showScreen("screen-home");
     // Pre-shuffle word lists and start buffering the first word for both languages
     // while the user decides. This is inside the user gesture so iOS allows play().
-    preloadFirstWords();
+    preloadAllWords();
 }
 
 // ── Cat card rewards ──
@@ -1027,35 +1027,31 @@ const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
 
 let _audio      = null;
 let _speakId    = 0;   // incremented on every speak() call; stale callbacks bail out early
-let _preShuffled = {}; // { english: [...], afrikaans: [...] } — computed during theme selection
-let _preloaded   = {}; // { "word|lang": audioElement } — muted audio loading in background
+let _preloaded = {}; // { "word|lang": audioElement } — muted audio loading in background
 
 function initSpeech() {}
 
 // Called from chooseTheme() — inside the user gesture.
-// Pre-shuffles both word lists and silently starts fetching the first word's audio
-// for each language, so the Cloudflare Worker is warm and the audio is buffered
-// by the time the user picks a language and the first card appears.
-function preloadFirstWords() {
+// Silently fetches audio for every word in both languages so the Cloudflare Worker
+// is warm and all audio is buffered before the first card appears.
+function preloadAllWords() {
     if (TEST_MODE) return;
     // Cancel any previous preloads
     Object.values(_preloaded).forEach(a => { a.pause(); a.src = ""; });
-    _preloaded   = {};
-    _preShuffled = {};
+    _preloaded = {};
 
     ["english", "afrikaans"].forEach(lang => {
-        const shuffled   = shuffle([...getWords(lang)]);
-        _preShuffled[lang] = shuffled;
-        const word       = shuffled[0];
-        const ttsLang    = TTS_LANG[lang] || "en";
-        const url        = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
-        const a          = document.createElement("audio");
-        a.crossOrigin    = "anonymous";
-        a.muted          = true;  // silent — user hasn't picked a word yet
-        a.src            = url;
-        a.play().catch(() => {}); // start buffering within the user gesture
-        _preloaded[word + "|" + lang] = a;
-        dbg(`preload "${word}" lang=${ttsLang}`);
+        const ttsLang = TTS_LANG[lang] || "en";
+        getWords(lang).forEach(word => {
+            const url     = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+            const a       = document.createElement("audio");
+            a.crossOrigin = "anonymous";
+            a.muted       = true;
+            a.src         = url;
+            a.play().catch(() => {});
+            _preloaded[word + "|" + lang] = a;
+            dbg(`preload "${word}" lang=${ttsLang}`);
+        });
     });
 }
 
@@ -1207,9 +1203,7 @@ function startGame(lang) {
     const words = getWords(lang);
     G.lang = lang;
     // Use the pre-shuffled queue so the preloaded audio matches the first word
-    G.queue = (_preShuffled[lang] && _preShuffled[lang].length === words.length)
-        ? _preShuffled[lang]
-        : shuffle(words);
+    G.queue    = shuffle(words);
     G.done     = [];
     G.attempts = {};
     G.stars    = 0;
@@ -1219,7 +1213,6 @@ function startGame(lang) {
     Object.keys(_preloaded).forEach(key => {
         if (!key.endsWith("|" + lang)) { _preloaded[key].pause(); delete _preloaded[key]; }
     });
-    _preShuffled = {};
     showScreen("screen-practice");
     nextWord(true);
 }
