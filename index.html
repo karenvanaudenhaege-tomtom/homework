@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=13"></script>
-<script src="emoji-map.js?v=13"></script>
+<script src="words.js?v=14"></script>
+<script src="emoji-map.js?v=14"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1038,55 +1038,73 @@ function prefetchAudio(word, lang) {
     _prefetch = { audio, word, lang };
 }
 
-function cancelSpeech() {
-    cancelTimerBar();
-    if (_audio) { _audio.pause(); _audio = null; }
-    window.speechSynthesis.cancel();
+function silenceAudio(a) {
+    if (!a) return;
+    a.onplay  = null; // detach handlers so stale callbacks can't fire
+    a.onerror = null;
+    a.pause();
 }
 
-function speakWithWebSpeech() {
-    const utt = new SpeechSynthesisUtterance(G.current);
-    utt.lang    = WSA_LANG[G.lang] || "en-GB";
-    utt.rate    = 0.85;
-    utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
-    utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
-    window.speechSynthesis.speak(utt);
+function cancelSpeech() {
+    cancelTimerBar();
+    silenceAudio(_audio);
+    _audio = null;
+    window.speechSynthesis.cancel();
 }
 
 function speak() {
     if (!G.current) return;
     // Cancel previous audio only — timer keeps running
-    if (_audio) { _audio.pause(); _audio = null; }
+    silenceAudio(_audio);
+    _audio = null;
     window.speechSynthesis.cancel();
     startTimerBar(); // no-op if already started for this card
-    const lang = TTS_LANG[G.lang] || "en";
+
+    const word    = G.current; // capture now — async callbacks must use this, not G.current
+    const ttsLang = TTS_LANG[G.lang] || "en";
+    const wsaLang = G.lang;
 
     let audio;
-    if (_prefetch && _prefetch.word === G.current && _prefetch.lang === G.lang) {
+    if (_prefetch && _prefetch.word === word && _prefetch.lang === G.lang) {
         audio = _prefetch.audio;
         _prefetch = null;
-        dbg(`speak "${G.current}" lang=${lang} (prefetched)`);
+        dbg(`speak "${word}" lang=${ttsLang} (prefetched)`);
     } else {
-        const url = `${TTS_WORKER}?word=${encodeURIComponent(G.current)}&lang=${encodeURIComponent(lang)}`;
-        dbg(`speak "${G.current}" lang=${lang}`);
+        const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+        dbg(`speak "${word}" lang=${ttsLang}`);
         dbg(`→ ${url}`);
         audio = document.createElement("audio");
         audio.crossOrigin = "anonymous";
         audio.src = url;
     }
     _audio = audio;
+
+    // Guard: onerror and play().catch() can both fire for a network error — only fall back once
+    let fellBack = false;
+    const fallback = (reason) => {
+        if (fellBack) return;
+        fellBack = true;
+        dbg(`${reason} — falling back to Web Speech`, "err");
+        const utt = new SpeechSynthesisUtterance(word);
+        utt.lang    = WSA_LANG[wsaLang] || "en-GB";
+        utt.rate    = 0.85;
+        utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
+        utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
+        window.speechSynthesis.speak(utt);
+    };
+
     audio.onplay  = () => { G.spokenAt = Date.now(); dbg("worker TTS ✓", "ok"); };
     audio.onerror = () => {
         const code = audio.error ? audio.error.code : "?";
-        const msg  = audio.error ? audio.error.message : "?";
-        dbg(`worker TTS error: code=${code} msg=${msg} — falling back to Web Speech`, "err");
-        speakWithWebSpeech();
+        fallback(`worker TTS error code=${code}`);
     };
-    audio.play().catch((e) => {
-        dbg(`worker play() blocked: ${e.message} — falling back to Web Speech`, "err");
-        speakWithWebSpeech();
-    });
+    audio.play().catch((e) => fallback(`worker play() blocked: ${e.message}`));
 }
+
+// Stop speech when the page goes to background — prevents Chrome's loop bug
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) window.speechSynthesis.cancel();
+});
 
 // ════════════════════════════════════════════════════════════
 //  COUNTDOWN TIMER BAR
