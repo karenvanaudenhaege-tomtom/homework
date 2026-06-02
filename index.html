@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=18"></script>
-<script src="emoji-map.js?v=18"></script>
+<script src="words.js?v=19"></script>
+<script src="emoji-map.js?v=19"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -850,6 +850,9 @@ function chooseTheme(theme) {
         document.body.classList.remove("cat-theme");
     }
     showScreen("screen-home");
+    // Pre-shuffle word lists and start buffering the first word for both languages
+    // while the user decides. This is inside the user gesture so iOS allows play().
+    preloadFirstWords();
 }
 
 // ── Cat card rewards ──
@@ -1022,10 +1025,39 @@ const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
 const TTS_LANG   = { english: "en", afrikaans: "af" };
 const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
 
-let _audio   = null;
-let _speakId = 0;   // incremented on every speak() call; stale callbacks bail out early
+let _audio      = null;
+let _speakId    = 0;   // incremented on every speak() call; stale callbacks bail out early
+let _preShuffled = {}; // { english: [...], afrikaans: [...] } — computed during theme selection
+let _preloaded   = {}; // { "word|lang": audioElement } — muted audio loading in background
 
 function initSpeech() {}
+
+// Called from chooseTheme() — inside the user gesture.
+// Pre-shuffles both word lists and silently starts fetching the first word's audio
+// for each language, so the Cloudflare Worker is warm and the audio is buffered
+// by the time the user picks a language and the first card appears.
+function preloadFirstWords() {
+    if (TEST_MODE) return;
+    // Cancel any previous preloads
+    Object.values(_preloaded).forEach(a => { a.pause(); a.src = ""; });
+    _preloaded   = {};
+    _preShuffled = {};
+
+    ["english", "afrikaans"].forEach(lang => {
+        const shuffled   = shuffle([...getWords(lang)]);
+        _preShuffled[lang] = shuffled;
+        const word       = shuffled[0];
+        const ttsLang    = TTS_LANG[lang] || "en";
+        const url        = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+        const a          = document.createElement("audio");
+        a.crossOrigin    = "anonymous";
+        a.muted          = true;  // silent — user hasn't picked a word yet
+        a.src            = url;
+        a.play().catch(() => {}); // start buffering within the user gesture
+        _preloaded[word + "|" + lang] = a;
+        dbg(`preload "${word}" lang=${ttsLang}`);
+    });
+}
 
 function silenceAudio(a) {
     if (!a) return;
@@ -1054,11 +1086,23 @@ function speak() {
     const ttsLang = TTS_LANG[G.lang] || "en";
     const wsaLang = G.lang;
 
-    const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
-    dbg(`speak "${word}" lang=${ttsLang}`);
-    const audio = document.createElement("audio");
-    audio.crossOrigin = "anonymous";
-    audio.src = url;
+    const preloadKey = word + "|" + wsaLang;
+    let audio;
+    if (_preloaded[preloadKey]) {
+        // Reuse the silently-buffering element — unmute and rewind
+        audio = _preloaded[preloadKey];
+        delete _preloaded[preloadKey];
+        audio.muted       = false;
+        audio.volume      = 1;
+        audio.currentTime = 0;
+        dbg(`speak "${word}" lang=${ttsLang} (preloaded, readyState=${audio.readyState})`);
+    } else {
+        const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+        dbg(`speak "${word}" lang=${ttsLang}`);
+        audio = document.createElement("audio");
+        audio.crossOrigin = "anonymous";
+        audio.src = url;
+    }
     _audio = audio;
 
     let fellBack = false;
@@ -1161,16 +1205,22 @@ function shuffle(a) {
 
 function startGame(lang) {
     const words = getWords(lang);
-    G.lang     = lang;
-    G.queue    = shuffle(words);
+    G.lang = lang;
+    // Use the pre-shuffled queue so the preloaded audio matches the first word
+    G.queue = (_preShuffled[lang] && _preShuffled[lang].length === words.length)
+        ? _preShuffled[lang]
+        : shuffle(words);
     G.done     = [];
     G.attempts = {};
     G.stars    = 0;
     G.maxStars = words.length * 3;
     words.forEach(w => G.attempts[w] = 0);
+    // Stop loading the other language's audio — it won't be needed
+    Object.keys(_preloaded).forEach(key => {
+        if (!key.endsWith("|" + lang)) { _preloaded[key].pause(); delete _preloaded[key]; }
+    });
+    _preShuffled = {};
     showScreen("screen-practice");
-    // Pass syncSpeak=true so speak() is called synchronously while we're still
-    // inside the tap event handler — iOS requires a user gesture for audio.play().
     nextWord(true);
 }
 
