@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=12"></script>
-<script src="emoji-map.js?v=12"></script>
+<script src="words.js?v=13"></script>
+<script src="emoji-map.js?v=13"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1055,8 +1055,10 @@ function speakWithWebSpeech() {
 
 function speak() {
     if (!G.current) return;
-    cancelSpeech();
-    startTimerBar();
+    // Cancel previous audio only — timer keeps running
+    if (_audio) { _audio.pause(); _audio = null; }
+    window.speechSynthesis.cancel();
+    startTimerBar(); // no-op if already started for this card
     const lang = TTS_LANG[G.lang] || "en";
 
     let audio;
@@ -1089,18 +1091,19 @@ function speak() {
 // ════════════════════════════════════════════════════════════
 //  COUNTDOWN TIMER BAR
 // ════════════════════════════════════════════════════════════
-let _timerRAF = null;
+let _timerRAF     = null;
+let _timerStarted = false; // true once the bar has been kicked off for the current card
 
 function startTimerBar() {
-    if (G.flipped) return;
+    if (G.flipped || _timerStarted) return; // don't restart if already running or done
+    _timerStarted = true;
+
     const wrap = document.getElementById("timer-bar-wrap");
     const bar  = document.getElementById("timer-bar");
     const btn  = document.getElementById("reveal-btn");
-    cancelAnimationFrame(_timerRAF);
     btn.disabled = true;
 
     if (ANTI_CHEAT_MS === 0) {
-        // No wait — re-enable immediately and hide bar
         wrap.style.display = "none";
         btn.disabled = false;
         return;
@@ -1123,6 +1126,8 @@ function startTimerBar() {
 
 function cancelTimerBar() {
     cancelAnimationFrame(_timerRAF);
+    _timerRAF     = null;
+    _timerStarted = false; // reset so the next card gets a fresh timer
 }
 
 // ════════════════════════════════════════════════════════════
