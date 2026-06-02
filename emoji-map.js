@@ -8,6 +8,7 @@ const EMOJI_MAP = {
 
     // ── ANIMALS ──────────────────────────────────────────────
     "ant": "🐜",        "mier": "🐜",
+    "brei": "🧶",
     "bat": "🦇",        "vlermuis": "🦇",
     "bear": "🐻",       "beer": "🐻",
     "bee": "🐝",        "by": "🐝",
@@ -49,6 +50,7 @@ const EMOJI_MAP = {
     "parrot": "🦜",     "papegaai": "🦜",
     "penguin": "🐧",    "pikkewyn": "🐧",
     "pig": "🐷",        "vark": "🐷",
+    "pig sty": "🐷",
     "rabbit": "🐰",     "haas": "🐰",
     "rat": "🐀",        "rot": "🐀",
     "rhino": "🦏",      "renoster": "🦏",
@@ -154,6 +156,7 @@ const EMOJI_MAP = {
     "volcano": "🌋",    "vulkaan": "🌋",
     "waterfall": "🌊",  "waterval": "🌊",
     "weather": "⛅",    "weer": "⛅",
+    "wei": "🌾",
     "wind": "💨",       "wind": "💨",
 
     // ── BODY ─────────────────────────────────────────────────
@@ -240,6 +243,7 @@ const EMOJI_MAP = {
     "oop": "🔓",
     "knife": "🔪",      "mes": "🔪",
     "lamp": "💡",       "lamp": "💡",
+    "light": "💡",
     "mirror": "🪞",     "spieël": "🪞",    "muur": "🧱",
     "paper": "📄",      "papier": "📄",
     "pen": "🖊️",       "pen": "🖊️",
@@ -275,6 +279,7 @@ const EMOJI_MAP = {
     // ── TRANSPORT ────────────────────────────────────────────
     "bike": "🚲",       "fiets": "🚲",
     "brief": "📨",
+    "bright": "✨",
     "boat": "⛵",       "boot": "⛵",
     "bridge": "🌉",     "brug": "🌉",
     "bus": "🚌",
@@ -282,6 +287,7 @@ const EMOJI_MAP = {
     "helicopter": "🚁", "helikopter": "🚁",
     "plane": "✈️",      "vliegtuig": "✈️",
     "road": "🛣️",      "pad": "🛣️",
+    "seil": "⛵",
     "rocket": "🚀",     "vuurpyl": "🚀",
     "ship": "🚢",       "skip": "🚢",
     "train": "🚂",      "trein": "🚂",
@@ -317,6 +323,7 @@ const EMOJI_MAP = {
 
     // ── ACTIONS ──────────────────────────────────────────────
     "avoid": "🙈",      "vermy": "🙈",
+    "shy": "🙈",
     "bestuur": "🚗",
     "boil": "♨️",       "kook": "♨️",
     "chat": "💬",
@@ -333,9 +340,11 @@ const EMOJI_MAP = {
     "drive": "🚗",      "ry": "🚗",
     "eat": "🍽️",       "eet": "🍽️",
     "fall": "🍂",       "val": "🍂",
+    "fight": "🥊",
     "fly": "✈️",        "vlieg": "✈️",
     "free": "🕊️",      "vry": "🕊️",
     "grab": "🤏",       "gryp": "🤏",
+    "hike": "🥾",
     "keep": "🔒",
     "grow": "🌱",       "groei": "🌱",
     "jump": "🦘",       "spring": "🦘",
@@ -372,6 +381,7 @@ const EMOJI_MAP = {
     "happy": "😊",      "bly": "😊",
     "joy": "😄",        "vreugde": "😄",
     "kind": "🤗",       "vriendelik": "🤗",
+    "klein": "🤏",
     "love": "❤️",       "liefde": "❤️",
     "proud": "🏆",      "trots": "🏆",
     "sad": "😢",        "hartseer": "😢",
