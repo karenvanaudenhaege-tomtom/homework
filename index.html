@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=17"></script>
-<script src="emoji-map.js?v=17"></script>
+<script src="words.js?v=18"></script>
+<script src="emoji-map.js?v=18"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1061,13 +1061,16 @@ function speak() {
     audio.src = url;
     _audio = audio;
 
-    // onerror and play().catch() can both fire for a network error — only fall back once,
-    // and only if this speak() call hasn't been superseded by a newer one.
     let fellBack = false;
     const fallback = (reason) => {
-        if (myId !== _speakId) return; // a newer speak() call has taken over
+        if (myId !== _speakId) return;
         if (fellBack) return;
         fellBack = true;
+        clearTimeout(loadTimer);
+        // Silence TTS so it can't play after Web Speech has started
+        audio.onplay  = null;
+        audio.onerror = null;
+        audio.pause();
         dbg(`${reason} — falling back to Web Speech`, "err");
         const utt = new SpeechSynthesisUtterance(word);
         utt.lang    = WSA_LANG[wsaLang] || "en-GB";
@@ -1081,7 +1084,11 @@ function speak() {
         window.speechSynthesis.speak(utt);
     };
 
+    // If TTS hasn't started playing within 1.5 s (e.g. worker cold-start), use Web Speech
+    const loadTimer = setTimeout(() => fallback("TTS load timeout"), 1500);
+
     audio.onplay  = () => {
+        clearTimeout(loadTimer);
         if (myId !== _speakId) return;
         G.spokenAt = Date.now();
         dbg("worker TTS ✓", "ok");
@@ -1654,6 +1661,8 @@ loadCustomWords();
 checkWordChange();
 initSpeech();
 refreshCounts();
+// Warm up the Cloudflare Worker at page load so the first word plays without a cold-start delay
+if (!TEST_MODE) fetch(TTS_WORKER + "?word=hi&lang=en").catch(() => {});
 if (TEST_MODE) {
     document.getElementById("debug-log").style.display = "flex";
     dbg(`app started — worker: ${TTS_WORKER}`);
