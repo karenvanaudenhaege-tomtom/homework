@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=11"></script>
-<script src="emoji-map.js?v=11"></script>
+<script src="words.js?v=12"></script>
+<script src="emoji-map.js?v=12"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1044,6 +1044,15 @@ function cancelSpeech() {
     window.speechSynthesis.cancel();
 }
 
+function speakWithWebSpeech() {
+    const utt = new SpeechSynthesisUtterance(G.current);
+    utt.lang    = WSA_LANG[G.lang] || "en-GB";
+    utt.rate    = 0.85;
+    utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
+    utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
+    window.speechSynthesis.speak(utt);
+}
+
 function speak() {
     if (!G.current) return;
     cancelSpeech();
@@ -1068,16 +1077,12 @@ function speak() {
     audio.onerror = () => {
         const code = audio.error ? audio.error.code : "?";
         const msg  = audio.error ? audio.error.message : "?";
-        dbg(`worker TTS error: code=${code} msg=${msg}`, "err");
+        dbg(`worker TTS error: code=${code} msg=${msg} — falling back to Web Speech`, "err");
+        speakWithWebSpeech();
     };
     audio.play().catch((e) => {
-        dbg(`worker failed: ${e.message} — falling back to Web Speech`, "err");
-        const utt   = new SpeechSynthesisUtterance(G.current);
-        utt.lang    = WSA_LANG[G.lang] || "en-GB";
-        utt.rate    = 0.85;
-        utt.onstart = () => { G.spokenAt = Date.now(); dbg(`Web Speech ✓ lang=${utt.lang}`, "ok"); };
-        utt.onerror = (ev) => { dbg(`Web Speech error: ${ev.error}`, "err"); };
-        window.speechSynthesis.speak(utt);
+        dbg(`worker play() blocked: ${e.message} — falling back to Web Speech`, "err");
+        speakWithWebSpeech();
     });
 }
 
