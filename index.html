@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=22"></script>
-<script src="emoji-map.js?v=22"></script>
+<script src="words.js?v=23"></script>
+<script src="emoji-map.js?v=23"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1018,12 +1018,15 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (Cloudflare Worker → ElevenLabs for AF, Google TTS for EN)
-//  Fallback: Web Speech API
+//  SPEECH
+//  Afrikaans on Android/desktop: device built-in voice (Web Speech af-ZA)
+//  Afrikaans on iOS + English:   Cloudflare Worker → Google Translate TTS
+//  Fallback:                     Web Speech API
 // ════════════════════════════════════════════════════════════
 const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
 const TTS_LANG   = { english: "en", afrikaans: "af" };
 const WSA_LANG   = { english: "en-GB", afrikaans: "af-ZA" };
+const IS_IOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 let _audio      = null;
 let _speakId    = 0;   // incremented on every speak() call; stale callbacks bail out early
@@ -1041,6 +1044,8 @@ function preloadAllWords() {
     _preloaded = {};
 
     ["english", "afrikaans"].forEach(lang => {
+        // Afrikaans on non-iOS uses device Web Speech — no worker preload needed
+        if (lang === "afrikaans" && !IS_IOS) return;
         const ttsLang = TTS_LANG[lang] || "en";
         getWords(lang).forEach(word => {
             const url     = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
@@ -1082,8 +1087,19 @@ function speak() {
     const ttsLang = TTS_LANG[G.lang] || "en";
     const wsaLang = G.lang;
 
-    const preloadKey = word + "|" + wsaLang;
+    // Afrikaans on Android/desktop: use device voice directly (better than Google Translate)
+    if (wsaLang === "afrikaans" && !IS_IOS) {
+        startTimerBar();
+        const utt   = new SpeechSynthesisUtterance(word);
+        utt.lang    = "af-ZA";
+        utt.rate    = 0.85;
+        utt.onstart = () => { if (myId === _speakId) { G.spokenAt = Date.now(); dbg("device TTS ✓ af-ZA", "ok"); } };
+        utt.onerror = (ev) => { dbg(`device TTS error: ${ev.error}`, "err"); };
+        window.speechSynthesis.speak(utt);
+        return;
+    }
 
+    const preloadKey = word + "|" + wsaLang;
     const srcUrl = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
 
     // iOS 26.5 fix: always create a fresh element — Safari 26 blocks replaying a
