@@ -22,30 +22,32 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "sky",
-        "shy",
-        "butterfly",
-        "pig sty",
-        "hike",
-        "drive",
-        "smile",
-        "bright",
-        "night",
-        "light",
-        "fight"
+        "throat",
+        "towel",
+        "coat",
+        "goat",
+        "toast",
+        "yellow",
+        "follow",
+        "ouch",
+        "pouch",
+        "growl",
+        "now",
+        "owl"
     ],
 
     afrikaans: [
-        "klein",
-        "eier",
-        "trein",
-        "wei",
-        "seil",
-        "reis",
-        "meisie",
-        "brein",
-        "geheim",
-        "brei"
+        "neut",
+        "neus",
+        "deur",
+        "kleure",
+        "geul",
+        "reus",
+        "seun",
+        "beursie",
+        "sleurt",
+        "heuning",
+        "meul"
     ]
 
 };
