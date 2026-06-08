@@ -17,12 +17,6 @@ After updating `words.js`, always do both of the following before committing:
 
 **1. Check emoji coverage.** For every new word (English and Afrikaans), look it up in `emoji-map.js`. If it's missing, add a suitable emoji entry in the right semantic section. Use the `update-emojis` skill if available.
 
-**2. Generate Afrikaans audio.** Afrikaans words use pre-recorded MP3 files in `audio/af/`. Run the generation script for any new Afrikaans words before committing:
+**2. Afrikaans audio is automatic.** The Cloudflare Worker calls ElevenLabs for Afrikaans words — no manual step needed. New words are spoken correctly as soon as the word list is live.
 
-```bash
-ELEVENLABS_API_KEY=your_key node generate-audio.js
-```
-
-The script skips words that already have an MP3. Commit the new `audio/af/*.mp3` files alongside `words.js`.
-
-> First time: sign up free at https://elevenlabs.io, copy your API key from Profile → API Keys.
+> One-time setup: in the Cloudflare Worker dashboard → Settings → Environment Variables, add `ELEVENLABS_API_KEY` (secret). Get the key from https://elevenlabs.io → Profile → API Keys (free account, 10k chars/month).

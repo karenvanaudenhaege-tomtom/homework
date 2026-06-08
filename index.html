@@ -1018,10 +1018,8 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH
-//  Afrikaans: pre-recorded MP3 files in audio/af/<word>.mp3
-//  English:   Cloudflare Worker → Google Translate TTS
-//  Fallback:  Web Speech API
+//  SPEECH  (Cloudflare Worker → ElevenLabs for AF, Google TTS for EN)
+//  Fallback: Web Speech API
 // ════════════════════════════════════════════════════════════
 const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
 const TTS_LANG   = { english: "en", afrikaans: "af" };
@@ -1045,16 +1043,14 @@ function preloadAllWords() {
     ["english", "afrikaans"].forEach(lang => {
         const ttsLang = TTS_LANG[lang] || "en";
         getWords(lang).forEach(word => {
-            const url = lang === "afrikaans"
-                ? `audio/af/${encodeURIComponent(word)}.mp3`
-                : `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+            const url     = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
             const a       = document.createElement("audio");
             a.crossOrigin = "anonymous";
             a.muted       = true;
             a.src         = url;
             a.play().catch(() => {});
             _preloaded[word + "|" + lang] = a;
-            dbg(`preload "${word}" lang=${lang}`);
+            dbg(`preload "${word}" lang=${ttsLang}`);
         });
     });
 }
@@ -1088,10 +1084,7 @@ function speak() {
 
     const preloadKey = word + "|" + wsaLang;
 
-    // Determine source URL (Afrikaans uses pre-recorded local files)
-    const srcUrl = wsaLang === "afrikaans"
-        ? `audio/af/${encodeURIComponent(word)}.mp3`
-        : `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+    const srcUrl = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
 
     // iOS 26.5 fix: always create a fresh element — Safari 26 blocks replaying a
     // muted preloaded element unmuted outside its original gesture. The preloaded

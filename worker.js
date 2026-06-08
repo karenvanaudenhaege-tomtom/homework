@@ -1,17 +1,15 @@
 /**
- * Cloudflare Worker — Google Translate TTS proxy
+ * Cloudflare Worker — TTS proxy
  *
- * Fetches audio from Google Translate TTS without sending a Referer header,
- * which is what GitHub Pages blocks. Returns the audio with CORS headers so
- * the browser on any origin can play it.
- *
- * Only responds to requests from your GitHub Pages domain or local http:// origins (local network only).
+ * Afrikaans: ElevenLabs multilingual_v2 (high quality)
+ * All other languages: Google Translate TTS
  *
  * Deploy steps (Cloudflare dashboard — no CLI needed):
  *   1. Go to https://dash.cloudflare.com/ → Workers & Pages → Create
  *   2. "Create Worker" → paste this file → Save and deploy
- *   3. Copy the worker URL (e.g. https://tts-proxy.YOUR-NAME.workers.dev)
- *   4. Paste it into index.html where it says TTS_WORKER_URL
+ *   3. Settings → Environment Variables → add ELEVENLABS_API_KEY (secret)
+ *      Optionally add ELEVENLABS_VOICE_ID to override the default voice.
+ *      Find Afrikaans voices at https://elevenlabs.io/voice-library
  *
  * Usage: GET /?word=hello&lang=en   or  /?word=huis&lang=af
  */
@@ -23,7 +21,7 @@ const ALLOWED_HTTPS_ORIGINS = new Set([
 ]);
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
 
     const isLocal = origin.startsWith("http://");
@@ -56,13 +54,41 @@ export default {
       return new Response("Invalid lang", { status: 400 });
     }
 
+    // Afrikaans → ElevenLabs (much better pronunciation than Google Translate)
+    if (lang === "af" && env.ELEVENLABS_API_KEY) {
+      const voiceId = env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        headers: {
+          "xi-api-key": env.ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: word,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true },
+        }),
+      });
+
+      if (res.ok) {
+        return new Response(await res.arrayBuffer(), {
+          headers: {
+            "Content-Type": "audio/mpeg",
+            "Access-Control-Allow-Origin": origin,
+            "Cache-Control": "public, max-age=86400",
+          },
+        });
+      }
+      // ElevenLabs failed (quota, network) — fall through to Google Translate
+    }
+
+    // Google Translate TTS (English and fallback)
     const ttsUrl =
       `https://translate.googleapis.com/translate_tts` +
       `?ie=UTF-8&q=${encodeURIComponent(word)}&tl=${encodeURIComponent(lang)}&client=gtx`;
 
     const upstream = await fetch(ttsUrl, {
       headers: {
-        // Mimic a plain browser request — no Referer header sent
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
           "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -73,13 +99,10 @@ export default {
       return new Response("Upstream TTS error", { status: upstream.status });
     }
 
-    const audio = await upstream.arrayBuffer();
-
-    return new Response(audio, {
+    return new Response(await upstream.arrayBuffer(), {
       headers: {
         "Content-Type": "audio/mpeg",
         "Access-Control-Allow-Origin": origin,
-        // Cache for 24 h — single words never change
         "Cache-Control": "public, max-age=86400",
       },
     });
