@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=21"></script>
-<script src="emoji-map.js?v=21"></script>
+<script src="words.js?v=22"></script>
+<script src="emoji-map.js?v=22"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -1018,8 +1018,10 @@ function resetWords() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  SPEECH  (Cloudflare Worker → Google Translate TTS)
-//  Fallback: Web Speech API
+//  SPEECH
+//  Afrikaans: pre-recorded MP3 files in audio/af/<word>.mp3
+//  English:   Cloudflare Worker → Google Translate TTS
+//  Fallback:  Web Speech API
 // ════════════════════════════════════════════════════════════
 const TTS_WORKER = "https://homework-speech.karen-vanaudenhaege.workers.dev";
 const TTS_LANG   = { english: "en", afrikaans: "af" };
@@ -1043,14 +1045,16 @@ function preloadAllWords() {
     ["english", "afrikaans"].forEach(lang => {
         const ttsLang = TTS_LANG[lang] || "en";
         getWords(lang).forEach(word => {
-            const url     = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+            const url = lang === "afrikaans"
+                ? `audio/af/${encodeURIComponent(word)}.mp3`
+                : `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
             const a       = document.createElement("audio");
             a.crossOrigin = "anonymous";
             a.muted       = true;
             a.src         = url;
             a.play().catch(() => {});
             _preloaded[word + "|" + lang] = a;
-            dbg(`preload "${word}" lang=${ttsLang}`);
+            dbg(`preload "${word}" lang=${lang}`);
         });
     });
 }
@@ -1083,22 +1087,23 @@ function speak() {
     const wsaLang = G.lang;
 
     const preloadKey = word + "|" + wsaLang;
-    let audio;
-    if (_preloaded[preloadKey]) {
-        // Reuse the silently-buffering element — unmute and rewind
-        audio = _preloaded[preloadKey];
-        delete _preloaded[preloadKey];
-        audio.muted       = false;
-        audio.volume      = 1;
-        audio.currentTime = 0;
-        dbg(`speak "${word}" lang=${ttsLang} (preloaded, readyState=${audio.readyState})`);
-    } else {
-        const url = `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
-        dbg(`speak "${word}" lang=${ttsLang}`);
-        audio = document.createElement("audio");
-        audio.crossOrigin = "anonymous";
-        audio.src = url;
-    }
+
+    // Determine source URL (Afrikaans uses pre-recorded local files)
+    const srcUrl = wsaLang === "afrikaans"
+        ? `audio/af/${encodeURIComponent(word)}.mp3`
+        : `${TTS_WORKER}?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(ttsLang)}`;
+
+    // iOS 26.5 fix: always create a fresh element — Safari 26 blocks replaying a
+    // muted preloaded element unmuted outside its original gesture. The preloaded
+    // element has already warmed the HTTP cache, so the fresh element loads instantly.
+    const cached = _preloaded[preloadKey];
+    delete _preloaded[preloadKey];
+    if (cached) { cached.pause(); cached.src = ""; }
+
+    dbg(`speak "${word}" lang=${ttsLang}${cached ? " (cache warm)" : ""}`);
+    const audio = document.createElement("audio");
+    audio.crossOrigin = "anonymous";
+    audio.src = srcUrl;
     _audio = audio;
 
     let fellBack = false;
@@ -1124,8 +1129,8 @@ function speak() {
         window.speechSynthesis.speak(utt);
     };
 
-    // If TTS hasn't started playing within 1.5 s (e.g. worker cold-start), use Web Speech
-    const loadTimer = setTimeout(() => fallback("TTS load timeout"), 1500);
+    // If audio hasn't started within 3 s, fall back to Web Speech
+    const loadTimer = setTimeout(() => fallback("TTS load timeout"), 3000);
 
     audio.onplay  = () => {
         clearTimeout(loadTimer);

@@ -70,6 +70,7 @@ const EMOJI_MAP = {
     "avocado": "🥑",    "avokado": "🥑",
     "banana": "🍌",     "piesang": "🍌",
     "bread": "🍞",      "brood": "🍞",
+    "toast": "🍞",
     "butter": "🧈",     "botter": "🧈",
     "cake": "🎂",       "koek": "🎂",
     "candy": "🍬",      "lekker": "🍬",
@@ -82,7 +83,7 @@ const EMOJI_MAP = {
     "corn": "🌽",       "mielies": "🌽",
     "drop": "💧",       "druppel": "💧",
     "egg": "🥚",        "eier": "🥚",
-    "flour": "🌾",      "meel": "🌾",
+    "flour": "🌾",      "meel": "🌾",      "meul": "🌾",
     "grape": "🍇",      "druif": "🍇",
     "honey": "🍯",      "heuning": "🍯",
     "ice cream": "🍦",  "roomys": "🍦",
@@ -93,7 +94,7 @@ const EMOJI_MAP = {
     "milk": "🥛",       "melk": "🥛",
     "mushroom": "🍄",   "sampioen": "🍄",
     "orange": "🍊",     "lemoen": "🍊",
-    "peanut": "🥜",     "grondboontjie": "🥜",
+    "peanut": "🥜",     "grondboontjie": "🥜",  "neut": "🥜",
     "pear": "🍐",       "peer": "🍐",
     "peach": "🍑",      "perske": "🍑",
     "pineapple": "🍍",  "pynappel": "🍍",
@@ -155,6 +156,7 @@ const EMOJI_MAP = {
     "tree": "🌳",       "boom": "🌳",
     "volcano": "🌋",    "vulkaan": "🌋",
     "waterfall": "🌊",  "waterval": "🌊",
+    "geul": "🌊",
     "weather": "⛅",    "weer": "⛅",
     "wei": "🌾",
     "wind": "💨",       "wind": "💨",
@@ -185,6 +187,7 @@ const EMOJI_MAP = {
     "skin": "🫁",       "vel": "🩹",
     "stomach": "🫃",    "maag": "🫃",
     "throat": "🗣️",    "keel": "🗣️",
+    "ouch": "🤕",
     "toe": "🦶",        "toon": "🦶",
     "tooth": "🦷",      "tand": "🦷",
 
@@ -213,6 +216,7 @@ const EMOJI_MAP = {
 
     // ── HOME & OBJECTS ───────────────────────────────────────
     "bag": "👜",        "sak": "👜",
+    "towel": "🧻",
     "beam": "🔆",
     "buurman": "🧑‍🤝‍🧑",
     "ball": "⚽",       "bal": "⚽",
@@ -305,6 +309,7 @@ const EMOJI_MAP = {
     "shirt": "👕",      "hemp": "👕",
     "sock": "🧦",       "kous": "🧦",
     "shorts": "🩳",     "kortbroek": "🩳",
+    "pouch": "👛",      "beursie": "👛",
 
     // ── COLOURS ──────────────────────────────────────────────
     "black": "🖤",      "swart": "🖤",
@@ -320,6 +325,7 @@ const EMOJI_MAP = {
     "silver": "🥈",     "silwer": "🥈",
     "white": "🤍",      "wit": "🤍",
     "yellow": "💛",     "geel": "💛",
+    "kleure": "🎨",
 
     // ── ACTIONS ──────────────────────────────────────────────
     "avoid": "🙈",      "vermy": "🙈",
@@ -340,6 +346,8 @@ const EMOJI_MAP = {
     "drive": "🚗",      "ry": "🚗",
     "eat": "🍽️",       "eet": "🍽️",
     "fall": "🍂",       "val": "🍂",
+    "follow": "👣",
+    "growl": "😤",
     "fight": "🥊",
     "fly": "✈️",        "vlieg": "✈️",
     "free": "🕊️",      "vry": "🕊️",
@@ -362,6 +370,7 @@ const EMOJI_MAP = {
     "smile": "😊",      "glimlag": "😊",
     "spoilt": "😤",     "bederf": "😤",
     "stoot": "👊",
+    "sleurt": "🧹",
     "stop": "🛑",       "stop": "🛑",
     "sway": "🌿",
     "swim": "🏊",       "swem": "🏊",
@@ -450,6 +459,8 @@ const EMOJI_MAP = {
     "secret": "🤫",     "geheim": "🤫",
     "story": "📖",      "storie": "📖",
     "tale": "📖",
+    "now": "⏰",
+    "reus": "🦣",
     "time": "⏰",       "tyd": "⏰",
     "town": "🏘️",
     "today": "📅",      "vandag": "📅",
