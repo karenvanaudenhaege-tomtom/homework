@@ -75,11 +75,21 @@ export default {
           headers: {
             "Content-Type": "audio/mpeg",
             "Access-Control-Allow-Origin": origin,
-            "Cache-Control": "public, max-age=86400",
+            "Cache-Control": "no-store",
+            "X-TTS-Provider": "elevenlabs",
           },
         });
       }
-      // ElevenLabs failed (quota, network) — fall through to Google Translate
+      // ElevenLabs failed — include status in header for debugging
+      const errStatus = res.status;
+      return new Response(await res.text(), {
+        status: 502,
+        headers: {
+          "Access-Control-Allow-Origin": origin,
+          "X-TTS-Provider": "elevenlabs-failed",
+          "X-ElevenLabs-Status": String(errStatus),
+        },
+      });
     }
 
     // Google Translate TTS (English and fallback)
@@ -104,6 +114,7 @@ export default {
         "Content-Type": "audio/mpeg",
         "Access-Control-Allow-Origin": origin,
         "Cache-Control": "public, max-age=86400",
+        "X-TTS-Provider": "google",
       },
     });
   },
