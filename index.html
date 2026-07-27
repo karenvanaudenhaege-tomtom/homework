@@ -834,8 +834,8 @@
     <div id="debug-entries"></div>
 </div>
 
-<script src="words.js?v=26"></script>
-<script src="emoji-map.js?v=26"></script>
+<script src="words.js?v=27"></script>
+<script src="emoji-map.js?v=27"></script>
 
 <script>
 // Words are loaded from words.js (WEEKLY_WORDS)
@@ -985,10 +985,10 @@ function renderEditPanel(lang) {
 function addWord(lang) {
     const inputId = lang === "english" ? "edit-en-input" : "edit-af-input";
     const input   = document.getElementById(inputId);
-    const word    = input.value.trim().toLowerCase();
+    const word    = input.value.trim();
     if (!word) return;
     if (!customWords) customWords = { english: [...getWords("english")], afrikaans: [...getWords("afrikaans")] };
-    if (!customWords[lang].includes(word)) {
+    if (!customWords[lang].some(w => w.toLowerCase() === word.toLowerCase())) {
         customWords[lang].push(word);
         saveCustomWords();
         resetStreak();
@@ -1245,7 +1245,7 @@ function nextWord(syncSpeak) {
     G.current = G.queue[0];
     G.flipped = false;
 
-    const emoji = EMOJI_MAP[G.current] || pick(LANG_CFG[G.lang].icons);
+    const emoji = EMOJI_MAP[G.current] || EMOJI_MAP[G.current.toLowerCase()] || pick(LANG_CFG[G.lang].icons);
     document.getElementById("q-icon").textContent = emoji;
 
     document.getElementById("card-inner").classList.remove("flipped");

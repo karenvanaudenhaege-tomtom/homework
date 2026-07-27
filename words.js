@@ -22,32 +22,34 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "throat",
-        "towel",
-        "coat",
-        "goat",
-        "toast",
-        "yellow",
-        "follow",
-        "ouch",
-        "pouch",
-        "growl",
-        "now",
-        "owl"
+        "ball",
+        "tall",
+        "mall",
+        "born",
+        "worn",
+        "torn",
+        "forlorn",
+        "prawn",
+        "pawn",
+        "hawk",
+        "Autumn",
+        "August",
+        "caught"
     ],
 
     afrikaans: [
-        "neut",
-        "neus",
-        "deur",
-        "kleure",
-        "geul",
-        "reus",
-        "seun",
-        "beursie",
-        "sleurt",
-        "heuning",
-        "meul"
+        "ring",
+        "sing",
+        "vang",
+        "gang",
+        "slang",
+        "hings",
+        "hang",
+        "bang",
+        "spring",
+        "ding",
+        "wang",
+        "tang"
     ]
 
 };
