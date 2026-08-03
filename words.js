@@ -22,34 +22,32 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "ball",
-        "tall",
-        "mall",
-        "born",
-        "worn",
-        "torn",
-        "forlorn",
-        "prawn",
-        "pawn",
-        "hawk",
-        "Autumn",
-        "August",
-        "caught"
+        "true",
+        "blue",
+        "statue",
+        "glue",
+        "value",
+        "pursue",
+        "stew",
+        "few",
+        "dew",
+        "nephew",
+        "Mathew",
+        "mildew"
     ],
 
     afrikaans: [
-        "ring",
-        "sing",
-        "vang",
-        "gang",
-        "slang",
-        "hings",
-        "hang",
-        "bang",
-        "spring",
-        "ding",
-        "wang",
-        "tang"
+        "bank",
+        "plank",
+        "drank",
+        "klank",
+        "skenk",
+        "blink",
+        "sink",
+        "tent",
+        "dink",
+        "flink",
+        "vink"
     ]
 
 };
