@@ -22,32 +22,32 @@ const ANTI_CHEAT_SECONDS = 4;
 const WEEKLY_WORDS = {
 
     english: [
-        "true",
-        "blue",
-        "statue",
-        "glue",
-        "value",
-        "pursue",
+        "screw",
         "stew",
-        "few",
-        "dew",
-        "nephew",
-        "Mathew",
-        "mildew"
+        "flew",
+        "chew",
+        "brew",
+        "threw",
+        "cashew",
+        "new",
+        "blew",
+        "grew",
+        "crew",
+        "few"
     ],
 
     afrikaans: [
-        "bank",
-        "plank",
-        "drank",
-        "klank",
-        "skenk",
-        "blink",
-        "sink",
-        "tent",
-        "dink",
-        "flink",
-        "vink"
+        "boek",
+        "hoed",
+        "skoen",
+        "koek",
+        "stoel",
+        "boer",
+        "roer",
+        "voer",
+        "voel",
+        "voet",
+        "broer"
     ]
 
 };
